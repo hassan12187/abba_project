@@ -1,5 +1,5 @@
 import {connect} from "mongoose";
-const uri = "mongodb+srv://hassan12187:hassan12187@cluster0.kuqcu97.mongodb.net/hostel_managment?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGO_URI;
 
 async function connectDB() {
   try {
