@@ -30,6 +30,9 @@ const userSchema=new Schema({
         type:String,
         enum:["ADMIN","STUDENT","SUPERADMIN"],
         default:"STUDENT"
+    },
+    refreshToken:{
+        type:String
     }
 });
 userSchema.pre("save",async function(next){

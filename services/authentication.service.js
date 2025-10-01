@@ -1,16 +1,25 @@
 import userModel from "../models/userModel.js";
 import bcrypt from "bcrypt";
-import { checkToken, getToken } from "./jwtService.js";
+import { checkToken, getAccessToken, getRefreshedToken } from "./jwtService.js";
 
 export const Login=async(req,res)=>{
     try {
         const {email,password}=req.body;
       const user = await userModel.findOne({email});
-    if(!user)return res.send({status:300,data:"Email not Found."});
+    if(!user)return res.send({status:401,data:"Email not Found."});
     const isMatched=await bcrypt.compare(password,user.password);
-    if(!isMatched)return res.send({status:300,data:"Password not Matched."});
-    const token = getToken(user);
-    return res.send({status:200,data:"Login Successfull.",role:user.role,token});
+    if(!isMatched)return res.send({status:401,data:"Password not Matched."});
+    const accessToken=getAccessToken({user});
+    const refreshedToken=getRefreshedToken(user._id);
+    user.refreshToken=refreshedToken;
+    await user.save();
+    res.cookie("refreshToken",refreshedToken,{
+            httpOnly:true,
+            secure:true,
+            sameSite:'strict',
+            maxAge:7*24*60*60*1000,
+        });
+        return res.send({status:200,data:"Login Successfull.",token:accessToken,role:user.role});
     } catch (error) {
         return res.send({status:500,data:"Oops! A server error occurred."});
     }

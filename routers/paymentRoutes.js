@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { handleAddPayment, handleGetPayment } from "../controllers/paymentController.js";
+import { handleAddPayment, handleGetAllPayment, handleGetPayments } from "../controllers/paymentController.js";
 const routes=Router();
-routes.post("/",handleAddPayment);
-routes.get("/",handleGetPayment);
+routes.post("/payment",handleAddPayment);
+routes.get("/payment",handleGetPayments);
+// routes.get("/payment",handleGetAllPayment);
 export default routes;

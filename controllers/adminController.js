@@ -40,6 +40,7 @@ export const editStudent=async(req,res)=>{
         const {id}=req.params;
         // const {first_name,last_name,status,application_status,cnic,cellphone,room_id,address,emergency_contact,registration_date}=req.body;
         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
+        console.log(student);
         return res.send({status:200,data:"Student Appication Status Updated."});
         // if(student===null)return res.send({status:400,data:"No Student Found."});
     } catch (error) {

@@ -10,17 +10,25 @@ import reportRoute from "./routers/reportRoutes.js"
 import { schedule } from "node-cron";
 import { handleGenerateMontlyReport } from "./services/monthlyReportService.js";
 import { isAuthorized } from "./services/authentication.service.js";
-import studentApplicationModel from "./models/studentApplicationModel.js";
+import authRoutes from "./routers/authRoutes.js";
+// import studentApplicationModel from "./models/studentApplicationModel.js";
+// import paymentModel from "./models/paymentModel.js";
+import cookieParser from "cookie-parser";
 config();
 const app=express();
-app.use(cors());
+app.use(cors({
+    origin:"http://127.0.0.1:5500",
+    credentials:true
+}));
+app.use(cookieParser());
 app.use(express.json());
+app.use(authRoutes);
 app.use("/static",staticRoutes);
-app.use("/api",isAuthorized);
+// app.use("/api",isAuthorized);
 app.use("/api",adminRoute);
 app.use("/api/expense",expenseRoute);
-app.use("/api/payment",paymentRoute);
 app.use("/api/report",reportRoute);
+app.use("/api",paymentRoute);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");
