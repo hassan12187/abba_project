@@ -50,3 +50,11 @@ export const isAuthorized=async(req,res,next)=>{
         return res.send({status:500,data:"Internal Server Error."});
     }
 };
+export const verifyCsrf=async(req,res,next)=>{
+    const cookieToken=req.cookies.csrfToken;
+    const headerToken=req.headers['x-csrf-token'];
+    if(!cookieToken || !headerToken || cookieToken !== headerToken){
+        return res.status(403).json({message:"Invalid CSRF Token"});
+    };
+    next();
+}

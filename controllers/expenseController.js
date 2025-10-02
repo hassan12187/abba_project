@@ -1,7 +1,8 @@
 import expenseModel from "../models/expenseModel.js";
 export const getAllExpense=async(req,res)=>{
     try {
-        const result = await expenseModel.find();
+        const {page,limit}=req.query;
+        const result = await expenseModel.find().skip(limit*page).limit(limit);
         if(result.length <=0)return res.send({status:400,data:[]});
         return res.send({status:200,data:result});
     } catch (error) {

@@ -13,13 +13,11 @@ export const getStudent=async(req,res)=>{
 };
 export const getStudentApplications=async(req,res)=>{
    try {
+        const {page,limit}=req.query;
         const students = await studentApplicationModel.find({
-            $or:[
-                {status:"pending"},
-                {status:"rejected"}
-            ]
-        });    
-        if(students.length==0)return res.send({status:302,data:"No Student Applications"});
+           
+        }).skip(limit*page).limit(limit);
+        if(students.length==0)return res.send({status:401,data:"No Student Applications"});
         return res.send({status:200,data:students});
     } catch (error) {
         return res.send({status:500,data:"Oops! A server error occurred."});
@@ -28,7 +26,8 @@ export const getStudentApplications=async(req,res)=>{
 
 export const getAllStudents=async(req,res)=>{
     try {
-        const students = await studentApplicationModel.find({status:"approved"}).populate("room_id");
+        const {limit,page}=req.query;
+        const students = await studentApplicationModel.find({status:"approved"}).skip(page*limit).skip(limit).populate("room_id");
         if(students.length==0)return res.send({status:302,data:"No Student Applications"});
         return res.send({status:200,data:students});
     } catch (error) {
