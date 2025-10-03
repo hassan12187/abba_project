@@ -8,8 +8,8 @@ export const Login=async(req,res)=>{
       const user = await userModel.findOne({email});
     if(!user)return res.send({status:401,data:"Email not Found."});
     const isMatched=await bcrypt.compare(password,user.password);
-    if(!isMatched)return res.send({status:401,data:"Password not Matched."});
-    const accessToken=getAccessToken({user});
+    if(!isMatched)return res.status(401).json({data:"Password not Matched.",name:"password"});
+    const accessToken=getAccessToken(user);
     const refreshedToken=getRefreshedToken(user._id);
     user.refreshToken=refreshedToken;
     await user.save();
@@ -19,9 +19,9 @@ export const Login=async(req,res)=>{
             sameSite:'strict',
             maxAge:7*24*60*60*1000,
         });
-        return res.send({status:200,data:"Login Successfull.",token:accessToken,role:user.role});
+        return res.status(200).json({data:"Login Successfull.",token:accessToken,role:user.role});
     } catch (error) {
-        return res.send({status:500,data:"Oops! A server error occurred."});
+        return res.status(500).json({data:"Oops! A server error occurred."});
     }
 };
 // export const Register=async(req,res)=>{
@@ -41,7 +41,7 @@ export const Login=async(req,res)=>{
 export const isAuthorized=async(req,res,next)=>{
     try {
         const token=req.headers?.authorization;
-        if(!token)return res.send({status:300,data:"Not Authorized."});
+        if(token == "" || token==null || token==undefined)return res.status(401).json({data:"Not Authorized."});
         const parsedToken=token.split("Bearer ")[1];
         const userData=checkToken(parsedToken);
         if(userData.role=="ADMIN") return next();

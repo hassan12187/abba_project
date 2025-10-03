@@ -19,6 +19,7 @@ export const handleRefreshToken=async(req,res)=>{
             sameSite:'strict',
             maxAge:7*24*60*60*1000,
         });
+        console.log("in refreshed route");
         return res.json({accessToken:newAccessToken});
     } catch (error) {
         return res.sendStatus(503);
