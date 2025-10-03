@@ -1,5 +1,6 @@
 import roomModel from "../models/roomModel.js";
 import studentApplicationModel from "../models/studentApplicationModel.js";
+import { redis } from "../services/connectRedis.js";
 
 export const getStudent=async(req,res)=>{
     try {
@@ -13,7 +14,10 @@ export const getStudent=async(req,res)=>{
 };
 export const getStudentApplications=async(req,res)=>{
    try {
+    console.log("hassan");
         const {page,limit}=req.query;
+        const resultFromCache = await redis.lrange(`${page}`);
+        console.log(resultFromCache);
         const students = await studentApplicationModel.find({
            
         }).skip(limit*page).limit(limit);
