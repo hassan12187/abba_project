@@ -24,11 +24,11 @@ export const handleGetAllPayment=async(req,res)=>{
 export const handleGetPayments=async(req,res)=>{
     try {
         const {page,limit}=req.query;
-        const cachedPageData = await client.get(`page:${page}`);
+        const cachedPageData = await client.get(`payment:${page}`);
         if(cachedPageData && cachedPageData.length>0)return res.status(200).json({data:"All Records.",payments:JSON.parse(cachedPageData)});
         console.log("after cachced");
         const payments=await paymentModel.find().skip(limit*page).limit(limit);
-        await client.set(`page:${page}`,JSON.stringify(payments));
+        await client.set(`payment:${page}`,JSON.stringify(payments));
         if(payments.length <=0)return res.send({status:300,data:"No Payments Found",payments});
         return res.send({status:200,data:"All Records.",payments});  
     } catch (error) {

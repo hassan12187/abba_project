@@ -1,9 +1,13 @@
 import expenseModel from "../models/expenseModel.js";
+import client from "../services/Redis.js";
 export const getAllExpense=async(req,res)=>{
     try {
         const {page,limit}=req.query;
+        const expenseDataFromCache = await client.get(`expense:${page}`);
+        if(expenseDataFromCache && expenseDataFromCache.length>0)return res.status(200).json({data:expenseDataFromCache});
         const result = await expenseModel.find().skip(limit*page).limit(limit);
         if(result.length <=0)return res.send({status:400,data:[]});
+        await client.set(`expense:${page}`,JSON.stringify(result));
         return res.send({status:200,data:result});
     } catch (error) {
         return res.send({status:500,data:"Internal Server Error."});
