@@ -1,5 +1,6 @@
 import roomModel from "../models/roomModel.js";
 import studentApplicationModel from "../models/studentApplicationModel.js";
+import redis from "../services/Redis.js";
 
 export const getStudent=async(req,res)=>{
     try {
@@ -13,10 +14,14 @@ export const getStudent=async(req,res)=>{
 };
 export const getStudentApplications=async(req,res)=>{
    try {
+    console.log("hassan");
         const {page,limit}=req.query;
+        const resultFromCache = await redis.get(`applications:${page}`);
+        console.log(resultFromCache);
         const students = await studentApplicationModel.find({
            
         }).skip(limit*page).limit(limit);
+        await redis.set(`applications:${page}`,JSON.stringify(students));
         if(students.length==0)return res.send({status:401,data:"No Student Applications"});
         return res.send({status:200,data:students});
     } catch (error) {

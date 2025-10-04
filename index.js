@@ -17,6 +17,13 @@ import csurf from "csurf";
 
 config();
 const app=express();
+const csrfProtection = csurf({
+    cookie:{
+        httpOnly:false,
+        secure:false,
+        sameSite:'strict'
+    }
+});
 app.use(cors({
     origin:"http://localhost:3000",
     credentials:true
@@ -36,8 +43,8 @@ app.use(cookieParser());
         //     }
         // });
         // app.use(csurfProtection);
-        app.use("/static",staticRoutes);
-
+        
+app.use("/static",staticRoutes);
 app.use(authRoutes);
 app.use("/api",isAuthorized);
 app.use("/api",adminRoute);
