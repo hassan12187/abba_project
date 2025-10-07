@@ -26,7 +26,7 @@ export const handleRefreshToken=async(req,res)=>{
     }
 };
 export const handleLogout=async(req,res)=>{
-    const refreshToken=req.cookies.refreshToken;
+    const refreshToken=req.cookies?.refreshToken;
     if(!refreshToken)return res.sendStatus(204);
     try {
         const payload = jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET);         

@@ -1,42 +1,40 @@
+import { io } from "../index.js";
 import roomModel from "../models/roomModel.js";
 import studentApplicationModel from "../models/studentApplicationModel.js";
-import redis from "../services/Redis.js";
+import redis from "../services/Redis.js";   
 
 export const getStudent=async(req,res)=>{
     try {
         const {id}=req.params;
         const student = await studentApplicationModel.findOne({_id:id});
-        if(student===null)return res.send({status:302,data:"No matching student record was found."});
-        return res.send({status:200,data:student});
+        if(student===null)return res.status(204).json({data:"No matching student record was found."});
+        return res.status(200).json({data:student});
     } catch (error) {
-        return res.send({status:500,data:"Oops! A server error occurred."});
+        return res.sendStatus(500);
     }
 };
 export const getStudentApplications=async(req,res)=>{
    try {
-    console.log("hassan");
         const {page,limit}=req.query;
         const resultFromCache = await redis.get(`applications:${page}`);
-        console.log(resultFromCache);
-        const students = await studentApplicationModel.find({
-           
-        }).skip(limit*page).limit(limit);
+        if(resultFromCache)return res.status(200).json({data:JSON.parse(resultFromCache)});
+        const students = await studentApplicationModel.find({$or:[{status:"pending"},{status:"rejected"}]}).skip(limit*page).limit(limit);
         await redis.set(`applications:${page}`,JSON.stringify(students));
-        if(students.length==0)return res.send({status:401,data:"No Student Applications"});
-        return res.send({status:200,data:students});
+        if(students.length==0)return res.status(404).json({data:"No Student Applications"});
+        return res.status(200).json({data:students});
     } catch (error) {
-        return res.send({status:500,data:"Oops! A server error occurred."});
+        return res.status(500).json({data:"Oops! A server error occurred."});
     }
 };
 
 export const getAllStudents=async(req,res)=>{
     try {
         const {limit,page}=req.query;
-        const students = await studentApplicationModel.find({status:"approved"}).skip(page*limit).skip(limit).populate("room_id");
-        if(students.length==0)return res.send({status:302,data:"No Student Applications"});
-        return res.send({status:200,data:students});
+        const students = await studentApplicationModel.find({status:"approved"}).skip(page*limit).limit(limit).populate("room_id");
+        if(students.length==0)return res.status(204).json({data:"No Student Applications"});
+        return res.status(200).json({data:students});
     } catch (error) {
-        return res.send({status:500,data:"Oops! A server error occurred."});
+        return res.sendStatus(500);
     }
 };
 export const editStudent=async(req,res)=>{
@@ -45,10 +43,10 @@ export const editStudent=async(req,res)=>{
         // const {first_name,last_name,status,application_status,cnic,cellphone,room_id,address,emergency_contact,registration_date}=req.body;
         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
         console.log(student);
-        return res.send({status:200,data:"Student Appication Status Updated."});
+        return res.status(200).json({data:"Student Appication Status Updated."});
         // if(student===null)return res.send({status:400,data:"No Student Found."});
     } catch (error) {
-        return res.send({status:500,data:"Internal Server Error"});
+        return res.sendStatus(500);
     }
 };
 // export const handleStudentStatus=async(req,res)=>{
@@ -75,19 +73,27 @@ export const addRoom=async(req,res)=>{
     try {
         const {room_no,total_beds,available_beds}=req.body;
         const room = await roomModel.findOne({room_no});
-        if(room!=null)return res.send({status:400,data:"Room Already Added."});
-        const result = await roomModel.insertOne({room_no,total_beds,available_beds});       
-        return res.send({status:200,data:"Room Successfull Added.",result});
+        if(room!=null)return res.status(204).json({data:"Room Already Added."});
+        const result = await roomModel.insertOne({room_no,total_beds,available_beds});
+        io.emit("newRoom",result);       
+        return res.status(200).json({data:"Room Successfull Added.",result});
     } catch (error) {
-    return res.send({status:500,data:"Internal Server Error"});
+    return res.sendStatus(500);
 }
 };
 export const getRooms=async(req,res)=>{
     try {
-        const rooms = await roomModel.find();
-        if(rooms.length <=0)return res.send({status:400,data:"No Room Found"});
-        return res.send({status:200,data:rooms});
+        const {page,limit}=req.query;
+        const roomsFromCache=await redis.get(`room:${page}`);
+        if(roomsFromCache && JSON.parse(roomsFromCache).length >0){
+            return res.status(200).json({data:JSON.parse(roomsFromCache)});
+        }
+        // if(roomsFromCache || JSON.parse(roomsFromCache).length)
+        const rooms = await roomModel.find().skip(limit*page).limit(limit);
+        if(rooms.length <=0)return res.status(404).json({data:"No Room Found"});
+        await redis.set(`room:${page}`,JSON.stringify(rooms));
+        return res.status(200).json({data:rooms});
     } catch (error) {
-        return res.send({status:500,data:"Internal Server Error"});
+        return res.status(500).json({data:"Internal Server Error"});
     }
 }

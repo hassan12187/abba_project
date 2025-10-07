@@ -12,11 +12,16 @@ import { handleGenerateMontlyReport } from "./services/monthlyReportService.js";
 import rateLimit from "express-rate-limit";
 import { isAuthorized } from "./services/authentication.service.js";
 import authRoutes from "./routers/authRoutes.js";
+import notificationRoutes from "./routers/notificationRoutes.js";
 import cookieParser from "cookie-parser";
 import csurf from "csurf";
+import {Server} from "socket.io";
+import {createServer} from "http";
+import WebSocketService from "./services/socket.service.js";
 
 config();
 const app=express();
+
 const csrfProtection = csurf({
     cookie:{
         httpOnly:false,
@@ -25,39 +30,53 @@ const csrfProtection = csurf({
     }
 });
 app.use(cors({
-    origin:"http://localhost:3000",
+    origin:process.env.FRONTEND_ORIGIN,
     credentials:true
 }));
 const limiter = rateLimit({
     windowMs:15*60*1000,
-    max:100
+    max:100,
+    message: 'Too many login attempts. Please try again later.'
 });
 app.use(limiter);
 app.use(express.json());
 app.use(cookieParser());
-// const csurfProtection=csurf({
-    //     cookie:{
-        //         httpOnly:false,
-        //         secure:true,
-        //         sameSite:'strict'
-        //     }
-        // });
-        // app.use(csurfProtection);
-        
 app.use("/static",staticRoutes);
+// const csurfProtection=csurf({
+//         cookie:{
+//                 httpOnly:false,
+//                 secure:true,
+//                 sameSite:'strict'
+//             }
+//         });
+//         app.use(csurfProtection);
+        
 app.use(authRoutes);
 app.use("/api",isAuthorized);
 app.use("/api",adminRoute);
 app.use("/api/expense",expenseRoute);
 app.use("/api/report",reportRoute);
 app.use("/api",paymentRoute);
+app.use("/api/notification",notificationRoutes);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");
 handleGenerateMontlyReport();
 });
-connectDB().then(()=>{
-    app.listen(process.env.PORT,()=>{
-        console.log(`the server is running on ${process.env.PORT}`);
-    });
+const server = createServer(app);
+export const io = new Server(server,{
+    cors:{
+        origin:process.env.FRONTEND_ORIGIN,
+        credentials:true,
+    },
 });
+WebSocketService();
+connectDB().then(()=>{
+    server.listen(process.env.PORT,()=>{
+        console.log(`the server is running on ${process.env.PORT}`);
+    })
+});
+// (async()=>{
+//     const keys = await redis.keys("application:*");
+//     if(keys.length >0)await redis.del(keys);
+// })()

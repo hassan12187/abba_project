@@ -78,7 +78,7 @@ const studentApplicationSchema=new Schema({
     },
     status:{
         type:String,
-        enum:["accepted","pending","rejected"],
+        enum:["accepted","pending","rejected","approved"],
         default:"pending"
     },
     application_submit_date:{
