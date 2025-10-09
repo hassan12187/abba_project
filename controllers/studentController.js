@@ -1,6 +1,7 @@
 import { io } from "../index.js";
 import NotificationModel from "../models/notificationModel.js";
 import studentApplicationModel from "../models/studentApplicationModel.js";
+import redis from "../services/Redis.js";
 
 export const RegisterApplication=async(req,res)=>{
     try {
@@ -14,6 +15,18 @@ export const RegisterApplication=async(req,res)=>{
             message:`New hostel application from ${result.student_name} (${result.student_roll_no}, ${result.academic_year})`,
             application_id:result._id
         });
+        let cursor = "0";
+        do{
+            const reply=await redis.scan(cursor,'MATCH','applications*','COUNT',100);
+            cursor=reply[0];
+            const keys = reply[1];
+            if(keys.length >0){
+                await redis.del(...keys);
+            }
+        }while(cursor !== "0");
+        // const keys = await redis.get("applications*");
+        // if(keys.length >0)await redis.del(keys);
+        // await redis.del
         io.emit("newApplication",{
             message:`New hostel application from ${result.student_name} (${result.department}, ${result.academic_year})`,
             application_id:result._id

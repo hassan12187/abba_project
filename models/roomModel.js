@@ -10,6 +10,11 @@ const roomSchema=new Schema({
     available_beds:{
         type:Number
     },
+    block:{
+        type:Schema.Types.ObjectId,
+        ref:"Block",
+        required:true
+    },
     status:{
         type:String,
         enum:["available","occupied","maintenance"],

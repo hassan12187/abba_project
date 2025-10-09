@@ -30,6 +30,9 @@ const studentApplicationSchema=new Schema({
     student_cellphone:{
         type:String
     },
+    student_reg_no:{
+        type:String
+    },
     father_cellphone:{
         type:String
     },

@@ -26,7 +26,16 @@ export const markNotificationsRead=async(req,res)=>{
     try {
         const result = await NotificationModel.updateMany({isRead:false},{$set:{isRead:true}});
         if(!result.acknowledged)return res.status(400);
-        await redis.del("notifications");
+        let cursor ="0";
+        do{
+            const reply = await redis.scan(cursor,'MATCH','notifications*','COUNT',100);
+            cursor=reply[0];
+            const keys = reply[1];
+            if(keys.length>0){
+                await redis.del(...keys);
+            }
+        }while(cursor !== "0");
+        // await redis.del(await redis.keys("notifications*"))
         return res.sendStatus(200)
     } catch (error) {
         return res.sendStatus(500);

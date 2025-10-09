@@ -5,7 +5,7 @@ export const getAllExpense=async(req,res)=>{
     try {
         const {page,limit,query,date}=req.query;
         console.log(page,limit,query,date);
-        let cachedKey=`expense:${page}`;
+        let cachedKey=`expenses:${page}`;
         if(query && query?.trim()!== "")cachedKey+=`:query:${query}`;
         if(date)cachedKey+=`:date:${date}`;
         
@@ -35,8 +35,17 @@ export const addExpense=async(req,res)=>{
         const {expense_type,description,amount}=req.body;
         const result = await expenseModel.insertOne({expense_type,description,amount});
         if(!result) return res.status(400).json({data:"Error Inserting Expense."});
-        const keys = await redis.keys('expense:*');
-        if(keys.length>0)await redis.del(keys);
+        let cursor = "0";
+        do {
+            const reply = await redis.scan(cursor,'MATCH','expenses*','COUNT',100);
+            cursor = reply[0];
+            const keys = reply[1];
+            if(keys.length >0){
+                await redis.del(...keys);
+            }
+        } while (cursor !== "0");
+        // const keys = await redis.keys('expenses*');
+        // if(keys.length>0)await redis.del(keys);
         return res.status(200).json({data:"Expense Successfully Inserted.",expense:result});
     } catch (error) {
         return res.status(500).json({data:"Internal Server Error."});
@@ -46,7 +55,7 @@ export const editExpense=async(req,res)=>{
     try {
         const result = await expenseModel.find();
         if(result.length <=0)return res.status(204).json({data:"No Expense Found."});
-        return res.sttus(200).json({data:result});
+        return res.status(200).json({data:result});
     } catch (error) {
         return res.sttus(500).json({data:"Internal Server Error."});
     }
