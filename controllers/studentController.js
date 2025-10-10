@@ -24,9 +24,6 @@ export const RegisterApplication=async(req,res)=>{
                 await redis.del(...keys);
             }
         }while(cursor !== "0");
-        // const keys = await redis.get("applications*");
-        // if(keys.length >0)await redis.del(keys);
-        // await redis.del
         io.emit("newApplication",{
             message:`New hostel application from ${result.student_name} (${result.department}, ${result.academic_year})`,
             application_id:result._id

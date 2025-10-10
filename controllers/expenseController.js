@@ -4,11 +4,9 @@ import redis from "../services/Redis.js";
 export const getAllExpense=async(req,res)=>{
     try {
         const {page,limit,query,date}=req.query;
-        console.log(page,limit,query,date);
         let cachedKey=`expenses:${page}`;
         if(query && query?.trim()!== "")cachedKey+=`:query:${query}`;
         if(date)cachedKey+=`:date:${date}`;
-        
         const expenseDataFromCache = await redis.get(cachedKey);
         if(expenseDataFromCache)return res.status(200).json({data:JSON.parse(expenseDataFromCache)});
         let filterKey={};
@@ -44,8 +42,6 @@ export const addExpense=async(req,res)=>{
                 await redis.del(...keys);
             }
         } while (cursor !== "0");
-        // const keys = await redis.keys('expenses*');
-        // if(keys.length>0)await redis.del(keys);
         return res.status(200).json({data:"Expense Successfully Inserted.",expense:result});
     } catch (error) {
         return res.status(500).json({data:"Internal Server Error."});

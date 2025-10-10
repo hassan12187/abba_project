@@ -10,7 +10,7 @@ const roomSchema=new Schema({
     available_beds:{
         type:Number
     },
-    block:{
+    block_id:{
         type:Schema.Types.ObjectId,
         ref:"Block",
         required:true

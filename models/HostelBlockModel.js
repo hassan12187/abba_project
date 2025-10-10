@@ -4,10 +4,15 @@ const hostelBlockSchema=new Schema({
         type:String
     },
     total_rooms:{
-        type:String
+        type:Number
     },
     description:{
         type:String
+    },
+    status:{
+        type:String,
+        enum:["under construction","ready","maintenance"],
+        default:"under construction"
     }
 },{timestamps:true});
 const HostelBlockModel=model("Block",hostelBlockSchema);

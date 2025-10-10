@@ -23,13 +23,13 @@ import WebSocketService from "./services/socket.service.js";
 config();
 const app=express();
 
-const csrfProtection = csurf({
-    cookie:{
-        httpOnly:false,
-        secure:false,
-        sameSite:'strict'
-    }
-});
+// const csrfProtection = csurf({
+//     cookie:{
+//         httpOnly:false,
+//         secure:false,
+//         sameSite:'strict'
+//     }
+// });
 app.use(cors({
     origin:process.env.FRONTEND_ORIGIN,
     credentials:true
@@ -55,11 +55,11 @@ app.use("/static",staticRoutes);
 app.use(authRoutes);
 app.use("/api",isAuthorized);
 app.use("/api",adminRoute);
-app.use("/api/block",hostelBlockRoutes);
 app.use("/api/expense",expenseRoute);
 app.use("/api/report",reportRoute);
 app.use("/api",paymentRoute);
 app.use("/api/notification",notificationRoutes);
+app.use("/api/block",hostelBlockRoutes);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");

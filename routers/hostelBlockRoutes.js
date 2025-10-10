@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { handleAddBlock, handleGetBlocks } from "../controllers/hostelBlockController.js";
+import { handleAddBlock, handleGetAllBlocks,handleGetBlocks } from "../controllers/hostelBlockController.js";
 
 const routes=Router();
-routes.get('/',handleGetBlocks);
+routes.get('/',handleGetAllBlocks);
+routes.get('/query',handleGetBlocks);
 routes.post('/',handleAddBlock);
 export default routes;
