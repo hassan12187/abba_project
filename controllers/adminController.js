@@ -3,13 +3,14 @@ import studentApplicationModel from "../models/studentApplicationModel.js";
 import redis from "../services/Redis.js";   
 
 export const getStudent=async(req,res)=>{
+    console.log("me toh agya abba");
     try {
         const {id}=req.params;
         const studentCached=await redis.get(`student:${id}`);
         if(studentCached)return res.status(200).json({data:JSON.parse(studentCached)});
         const student = await studentApplicationModel.findOne({_id:id});
         if(!student)return res.status(204).json({data:"No matching student record was found."});
-        await redis.setex(`student:${id}`,3600,student);
+        await redis.setex(`student:${id}`,3600,JSON.stringify(student));
         return res.status(200).json({data:student});
     } catch (error) {
         return res.sendStatus(500);
@@ -70,15 +71,47 @@ export const getStudentApplications=async(req,res)=>{
 
 export const getAllStudents=async(req,res)=>{
     try {
-        const {limit,page,query,status,room_assign}=req.query;
+        const {limit,page,query,status="",room_assign=""}=req.query;
+        console.log(status);
         let cachedKey=`student:${page}`;
         if(query)cachedKey+=`:query:${query}`;
         if(status)cachedKey+=`:status:${status}`;
         if(room_assign)cachedKey+=`:room:${room_assign}`;
         const cachedData=await redis.get(cachedKey);
-        if(cachedData){
-            return res.status(200).json({data:JSON.parse(cachedData)})};
-        const students = await studentApplicationModel.find({$or:[{status:'approved'},{status:'accepted'}]}).skip(page*limit).limit(limit).populate("room_id");
+        if(cachedData){return res.status(200).json({data:JSON.parse(cachedData)})};
+       let filterKey = {};
+
+    // If admin filters by status (accepted, approved, etc.)
+    if (status) {
+      filterKey.status = status;
+    }else{
+        filterKey={$or:[{status:"approved"},{status:"accepted"}]}
+    }
+
+    // If admin searches with query
+    if (query) {
+      const isNumber = !isNaN(query); // true if numeric
+      if (isNumber) {
+        // 🔹 Numeric query means search by cellphone
+        filterKey.student_cellphone = query;
+
+        // 🔹 If admin has not selected status, but you want to include both approved/accepted
+
+
+      } else {
+        // 🔹 Text query (search by student name)
+        filterKey.student_name = { $regex: query, $options: "i" };
+      }
+    }
+
+    // 🔹 If admin filters by "room not assigned"
+    if (room_assign === "room_not_assigned") {
+      filterKey.room_id = null;
+    }
+
+        console.log("fulter ",filterKey)
+        const students = await studentApplicationModel.find(filterKey).skip(page*limit).limit(limit).populate("room_id");
+        console.log(students)
         if(students.length<=0)return res.status(204).json({data:[]});
         await redis.setex(cachedKey,3600,JSON.stringify(students));
         return res.status(200).json({data:students});
@@ -91,13 +124,36 @@ export const editStudent=async(req,res)=>{
         const {id}=req.params;
         // const {first_name,last_name,status,application_status,cnic,cellphone,room_id,address,emergency_contact,registration_date}=req.body;
         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
+        if(!student)return res.sendStatus(500);
         console.log(student);
+        let cursor="0";
+        do {
+            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+            cursor=reply[0];
+            const keys = reply[1];
+            if(keys.length>0){
+                await redis.del(...keys);
+            }
+        } while (cursor!=="0");
+        // console.log(student);
         return res.status(200).json({data:"Student Appication Status Updated."});
         // if(student===null)return res.send({status:400,data:"No Student Found."});
     } catch (error) {
         return res.sendStatus(500);
     }
 };
+// export const assingRoom=async(req,res)=>{
+//     try {
+//         const {id}=req.params;
+//         // const {first_name,last_name,status,application_status,cnic,cellphone,room_id,address,emergency_contact,registration_date}=req.body;
+//         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
+//         console.log(student);
+//         return res.status(200).json({data:"Student Appication Status Updated."});
+//         // if(student===null)return res.send({status:400,data:"No Student Found."});
+//     } catch (error) {
+//         return res.sendStatus(500);
+//     }
+// }
 // export const handleStudentStatus=async(req,res)=>{
 //     try {
 //         const {id}=req.params;

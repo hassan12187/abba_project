@@ -9,5 +9,5 @@ routes.get('/room',getRooms);
 routes.get('/room/block',handleGetRoomsWithBlock);
 routes.post('/room',addRoom);
 routes.get("/student/:id",getStudent);
-routes.patch("/student/:id",verifyCsrf,editStudent);
+routes.patch("/student/:id",editStudent);
 export default routes;
