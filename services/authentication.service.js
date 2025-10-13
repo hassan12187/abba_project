@@ -21,6 +21,7 @@ export const Login=async(req,res)=>{
         });
         return res.status(200).json({data:"Login Successfull.",token:accessToken,role:user.role});
     } catch (error) {
+        console.log(error);
         return res.status(500).json({data:"Oops! A server error occurred."});
     }
 };
@@ -41,13 +42,16 @@ export const Login=async(req,res)=>{
 export const isAuthorized=async(req,res,next)=>{
     try {
         const token=req.headers?.authorization;
-        if(token == "" || token==null || token==undefined)return res.status(401).json({data:"Not Authorized."});
+        if(token == "" || token==null || token==undefined)return res.status(401).json({data:"Unauthorized Http Requests."});
         const parsedToken=token.split("Bearer ")[1];
         const userData=checkToken(parsedToken);
-        if(userData.role=="ADMIN") return next();
-        return res.send({status:300,data:"Not Authorized."});
+        if(userData.role=="ADMIN") {
+            req.id=userData.id;
+            return next();
+        };
+        return res.status(403).json({data:"UNAUTHORIZED."});
     } catch (error) {
-        return res.send({status:500,data:"Internal Server Error."});
+        return res.status(500).json({data:"Internal Server Error."});
     }
 };
 export const verifyCsrf=async(req,res,next)=>{

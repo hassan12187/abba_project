@@ -16,6 +16,12 @@ const userSchema=new Schema({
         trim:true,
         match:[/.+\@.+\..+/,"Please enter a valid Email Address."]
     },
+    phone:{
+        type:String,
+        // required:[true,"Phone Number is required."],
+        maxlength:[15,"Phone Number must be of 11 numbers."],
+        trim:true
+    },
     password:{
         type:String,
         required:[true,"Password is required."],

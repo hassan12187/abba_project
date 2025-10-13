@@ -14,6 +14,7 @@ import { isAuthorized } from "./services/authentication.service.js";
 import authRoutes from "./routers/authRoutes.js";
 import notificationRoutes from "./routers/notificationRoutes.js";
 import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
+import settingsRoute from "./routers/settingsRoute.js";
 import cookieParser from "cookie-parser";
 import csurf from "csurf";
 import {Server} from "socket.io";
@@ -53,13 +54,14 @@ app.use("/static",staticRoutes);
 //         app.use(csurfProtection);
         
 app.use(authRoutes);
-app.use("/api",isAuthorized);
-app.use("/api",adminRoute);
-app.use("/api/expense",expenseRoute);
-app.use("/api/report",reportRoute);
-app.use("/api",paymentRoute);
+app.use("/api/admin",isAuthorized);
+app.use("/api/admin",adminRoute);
+app.use("/api/admin/expense",expenseRoute);
+app.use("/api/admin/report",reportRoute);
+app.use("/api/admin/payment",paymentRoute);
+app.use("/api/admin/block",hostelBlockRoutes);
+app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
-app.use("/api/block",hostelBlockRoutes);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");
