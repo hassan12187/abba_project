@@ -4,22 +4,22 @@ import { checkToken, getAccessToken, getRefreshedToken } from "./jwtService.js";
 
 export const Login=async(req,res)=>{
     try {
-        const {email,password}=req.body;
-      const user = await userModel.findOne({email});
-    if(!user)return res.send({status:401,data:"Email not Found."});
-    const isMatched=await bcrypt.compare(password,user.password);
-    if(!isMatched)return res.status(401).json({data:"Password not Matched.",name:"password"});
-    const accessToken=getAccessToken(user);
-    const refreshedToken=getRefreshedToken(user._id);
-    user.refreshToken=refreshedToken;
-    await user.save();
+    const {email,password}=req.body;
+    const userData=await userModel.findOne({email});
+    if(!userData)return res.status(401).send("Invalid Credentials.");
+    const isMatched=await bcrypt.compare(password,userData.password);
+    if(!isMatched)return res.status(401).send("Invalid Credentials.");
+    const accessToken=getAccessToken(userData);
+    const refreshedToken=getRefreshedToken(userData._id);
+    userData.refreshToken=refreshedToken;
+    await userData.save();
     res.cookie("refreshToken",refreshedToken,{
             httpOnly:true,
             secure:true,
             sameSite:'strict',
             maxAge:7*24*60*60*1000,
         });
-        return res.status(200).json({data:"Login Successfull.",token:accessToken,role:user.role});
+        return res.status(200).json({data:"Login Successfull.",token:accessToken,role:userData.role});
     } catch (error) {
         console.log(error);
         return res.status(500).json({data:"Oops! A server error occurred."});

@@ -7,8 +7,10 @@ export const getStudent=async(req,res)=>{
     try {
         const {id}=req.params;
         const studentCached=await redis.get(`student:${id}`);
+        console.log(JSON.parse(studentCached));
         if(studentCached)return res.status(200).json({data:JSON.parse(studentCached)});
-        const student = await studentApplicationModel.findOne({_id:id});
+        const student = await studentApplicationModel.findOne({_id:id}).populate("room_id");
+        console.log(student);
         if(!student)return res.status(204).json({data:"No matching student record was found."});
         await redis.setex(`student:${id}`,3600,JSON.stringify(student));
         return res.status(200).json({data:student});

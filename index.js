@@ -35,15 +35,15 @@ app.use(cors({
     origin:process.env.FRONTEND_ORIGIN,
     credentials:true
 }));
+app.use(express.json());
+app.use(cookieParser());
+
 const limiter = rateLimit({
     windowMs:15*60*1000,
     max:100,
-    message: 'Too many login attempts. Please try again later.'
 });
-app.use(limiter);
-app.use(express.json());
-app.use(cookieParser());
 app.use("/static",staticRoutes);
+app.use(limiter);
 // const csurfProtection=csurf({
 //         cookie:{
 //                 httpOnly:false,
@@ -80,7 +80,3 @@ connectDB().then(()=>{
         console.log(`the server is running on ${process.env.PORT}`);
     })
 });
-// (async()=>{
-//     const keys = await redis.keys("application:*");
-//     if(keys.length >0)await redis.del(keys);
-// })()

@@ -7,3 +7,7 @@ client.set("testKey", "Hello Redis!")
   })
   .catch(err => console.error("Redis error:", err));
 export default client;
+export const redisConnection = {
+  host: '127.0.0.1',
+  port: 6379
+};

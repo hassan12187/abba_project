@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { handleProfileInformation,getProfileInformation} from "../controllers/settingsController.js";
+import { handleUpdateProfileInformation,getProfileInformation,requestPasswordChange} from "../controllers/settingsController.js";
 
 const routes=Router();
 routes.get('/profile-information',getProfileInformation)
-routes.patch('/profile-information',handleProfileInformation);
+routes.patch('/profile-information/:id',handleUpdateProfileInformation);
+routes.patch('/password/:id',requestPasswordChange);
 export default routes;

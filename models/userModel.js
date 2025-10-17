@@ -39,7 +39,9 @@ const userSchema=new Schema({
     },
     refreshToken:{
         type:String
-    }
+    },
+    passwordResetCode: { type: String },
+    passwordResetExpires: { type: Date },
 });
 userSchema.pre("save",async function(next){
     if(!this.isModified('password'))return next();
