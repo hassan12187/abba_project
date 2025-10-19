@@ -16,21 +16,16 @@ import notificationRoutes from "./routers/notificationRoutes.js";
 import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
 import settingsRoute from "./routers/settingsRoute.js";
 import cookieParser from "cookie-parser";
-import csurf from "csurf";
 import {Server} from "socket.io";
 import {createServer} from "http";
 import WebSocketService from "./services/socket.service.js";
+import "./services/agenda.js";  
+import "./queues/emailWorker.js";
+import helmet from "helmet";
 
-config();
+config();   
 const app=express();
-
-// const csrfProtection = csurf({
-//     cookie:{
-//         httpOnly:false,
-//         secure:false,
-//         sameSite:'strict'
-//     }
-// });
+app.use(helmet());
 app.use(cors({
     origin:process.env.FRONTEND_ORIGIN,
     credentials:true
@@ -44,14 +39,6 @@ const limiter = rateLimit({
 });
 app.use("/static",staticRoutes);
 app.use(limiter);
-// const csurfProtection=csurf({
-//         cookie:{
-//                 httpOnly:false,
-//                 secure:true,
-//                 sameSite:'strict'
-//             }
-//         });
-//         app.use(csurfProtection);
         
 app.use(authRoutes);
 app.use("/api/admin",isAuthorized);

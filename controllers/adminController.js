@@ -1,3 +1,4 @@
+import mongoose, { startSession } from "mongoose";
 import roomModel from "../models/roomModel.js";
 import studentApplicationModel from "../models/studentApplicationModel.js";
 import redis from "../services/Redis.js";   
@@ -144,18 +145,86 @@ export const editStudent=async(req,res)=>{
         return res.sendStatus(500);
     }
 };
-// export const assingRoom=async(req,res)=>{
-//     try {
-//         const {id}=req.params;
-//         // const {first_name,last_name,status,application_status,cnic,cellphone,room_id,address,emergency_contact,registration_date}=req.body;
-//         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
-//         console.log(student);
-//         return res.status(200).json({data:"Student Appication Status Updated."});
-//         // if(student===null)return res.send({status:400,data:"No Student Found."});
-//     } catch (error) {
-//         return res.sendStatus(500);
-//     }
-// }
+export const assignRoom=async(req,res)=>{
+    try {
+        const {id}=req.params;
+        const {room_id}=req.body;
+        if(!room_id){
+            let status = await removeRoom(id)
+            return res.sendStatus(status);
+        };
+
+        const session = await startSession();
+        session.startTransaction();
+        try {
+            await studentApplicationModel.findOneAndUpdate({_id:id},{$set:{room_id:room_id}},{session});
+            const room = await roomModel.findOne({_id:room_id});
+            if(room.available_beds<=0){
+                session.abortTransaction();
+                return res.status(403).send("No Beds Available.")};
+                if(!room){
+                    session.abortTransaction();
+                    return res.sendStatus(204)};
+                    room.available_beds-=1;
+                    await room.save({session});
+            await session.commitTransaction();
+        } catch (error) {
+            await session.abortTransaction();
+            return res.status(403).send("Error Assigning Room.");
+        }finally{
+            await session.endSession();
+        };
+        let cursor ="0";
+             do {
+            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+            cursor=reply[0];
+            const keys = reply[1];
+            if(keys.length>0){
+                await redis.del(...keys);
+            }
+        } while (cursor!=="0");
+        return res.status(200).json({data:"Student Appication Status Updated."});
+        // if(student===null)return res.send({status:400,data:"No Student Found."});
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+};
+const removeRoom=async(id)=>{
+    const session = await startSession();
+    session.startTransaction();
+    try {
+        const student = await studentApplicationModel.findById(id).session(session);
+        if(!student){
+            await session.abortTransaction();
+            return 204;
+        };
+        const room_id=student.room_id;
+        await studentApplicationModel.updateOne({_id:id},{$unset:{room_id:""}},{session});  
+        if(!room_id){
+            await session.abortTransaction();
+            return 400;
+        };
+        await roomModel.updateOne({_id:room_id},{$inc:{available_beds:1}},{session});
+        await session.commitTransaction();
+        return 200;
+    } catch (error) {
+        console.log(error);
+        await session.abortTransaction();
+        return 500;
+    }finally{
+        let cursor = "0";   
+                do {
+            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+            cursor=reply[0];
+            const keys = reply[1];
+            if(keys.length>0){
+                await redis.del(...keys);
+            }
+        } while (cursor!=="0");
+        await session.endSession();
+    };
+};
 // export const handleStudentStatus=async(req,res)=>{
 //     try {
 //         const {id}=req.params;
@@ -195,6 +264,19 @@ export const addRoom=async(req,res)=>{
         // if(keys.length>0)await redis.del(keys);
         return res.status(200).json({data:"Room Successfull Added.",result});
     } catch (error) {
+    return res.sendStatus(500);
+}
+};
+export const getRoom=async(req,res)=>{
+try {
+    const {id}=req.params;
+    const cachedRoom=await redis.get(`room:${id}`);
+    if(cachedRoom)return res.status(200).json({data:JSON.parse(cachedRoom)});
+    const room = await roomModel.findOne({_id:id}).populate('block_id');
+    if(!room)return res.sendStatus(204);
+    await redis.setex(`room:${id}`,3600,JSON.stringify(room));
+    return res.status(200).json({data:room});
+} catch (error) {
     return res.sendStatus(500);
 }
 };
