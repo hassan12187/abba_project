@@ -64,4 +64,18 @@ export const handleAddBlock=async(req,res)=>{
         console.log(error);
         return res.sendStatus(500);
     }
-}
+};
+export const handleGetBlock=async(req,res)=>{
+    try {
+        const {id} = req.params;
+        const cachedData=await redis.get(`blocks:${id}`);
+        if(cachedData)return res.status(200).json({data:JSON.parse(cachedData)});
+        const block=await HostelBlockModel.findOne({_id:id});
+        if(!block)return res.sendStatus(204);
+        await redis.setex(`blocks:${id}`,3600,JSON.stringify(block));
+        return res.status(200).json({data:block});
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+};
