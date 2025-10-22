@@ -15,6 +15,7 @@ import authRoutes from "./routers/authRoutes.js";
 import notificationRoutes from "./routers/notificationRoutes.js";
 import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
 import settingsRoute from "./routers/settingsRoute.js";
+import maintenanceStaffRoutes from "./routers/maintenanceStaffRoutes.js";
 import cookieParser from "cookie-parser";
 import {Server} from "socket.io";
 import {createServer} from "http";
@@ -49,6 +50,7 @@ app.use("/api/admin/payment",paymentRoute);
 app.use("/api/admin/block",hostelBlockRoutes);
 app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
+app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");
