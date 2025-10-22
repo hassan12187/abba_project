@@ -283,22 +283,36 @@ try {
 export const getRooms=async(req,res)=>{
     try {
         const {page,limit,query="",status=""}=req.query;
+        const statCachedKey='rooms:stats';
         let cachedKey=`rooms:${page}`;
         if(query)cachedKey+=`:query:${query}`;
         if(status)cachedKey+=`:status:${status}`;
         const roomsFromCache=await redis.get(cachedKey);
+        let roomStatsFromCache=await redis.get(statCachedKey);
+        if(roomStatsFromCache)roomStatsFromCache=JSON.parse(roomStatsFromCache);
+        else{
+            const roomStatsAgg = await roomModel.aggregate([{$group:{_id:"$status",count:{$sum:1}}}]);
+            const totalRooms=await roomModel.countDocuments();
+            const stats={
+                totalRooms,
+                availableRooms:roomStatsAgg.find(r => r._id==="available")?.count||0,
+                occupiedRooms:roomStatsAgg.find(r => r._id==="occupied")?.count||0,
+                maintenanceRooms:roomStatsAgg.find(r => r._id==="maintenance")?.count || 0
+            };
+            roomStatsFromCache=stats;
+            await redis.setex(statCachedKey,3600,JSON.stringify(stats));
+        }
         if(roomsFromCache){
-            return res.status(200).json({data:JSON.parse(roomsFromCache)});
+            return res.status(200).json({data:JSON.parse(roomsFromCache),stats:roomStatsFromCache});
         };
         let filterKey={};
         let roomNo=query.toLowerCase();
         if(query)filterKey.room_no={$regex:roomNo,$options:"i"};
         if(status)filterKey.status=status;
         const rooms = await roomModel.find(filterKey).skip(limit*page).limit(limit);
-        console.log("rooms",rooms);
         if(rooms.length <=0)return res.status(204).json({data:[]});
         await redis.setex(cachedKey,3600,JSON.stringify(rooms));
-        return res.status(200).json({data:rooms});
+        return res.status(200).json({data:rooms,stats:roomStatsFromCache});
     } catch (error) {
         return res.status(500).json({data:"Internal Server Error"});
     }

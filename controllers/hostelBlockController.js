@@ -79,3 +79,14 @@ export const handleGetBlock=async(req,res)=>{
         return res.sendStatus(500);
     }
 };
+export const handleEditBlock=async(req,res)=>{
+    try {
+        const {id}=req.params;
+        const result=await HostelBlockModel.findOneAndUpdate({_id:id},{$set:req.body});
+        if(!result)return res.sendStatus(403);
+        await redis.del(`blocks:${id}`);
+        return res.sendStatus(200);
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+}
