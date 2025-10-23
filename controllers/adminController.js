@@ -1,19 +1,19 @@
 import mongoose, { startSession } from "mongoose";
 import roomModel from "../models/roomModel.js";
 import studentApplicationModel from "../models/studentApplicationModel.js";
-import redis from "../services/Redis.js";   
+// import redis from "../services/Redis.js";   
 
 export const getStudent=async(req,res)=>{
     console.log("me toh agya abba");
     try {
         const {id}=req.params;
-        const studentCached=await redis.get(`student:${id}`);
-        console.log(JSON.parse(studentCached));
-        if(studentCached)return res.status(200).json({data:JSON.parse(studentCached)});
+        // const studentCached=await redis.get(`student:${id}`);
+        // console.log(JSON.parse(studentCached));
+        // if(studentCached)return res.status(200).json({data:JSON.parse(studentCached)});
         const student = await studentApplicationModel.findOne({_id:id}).populate("room_id");
         console.log(student);
         if(!student)return res.status(204).json({data:"No matching student record was found."});
-        await redis.setex(`student:${id}`,3600,JSON.stringify(student));
+        // await redis.setex(`student:${id}`,3600,JSON.stringify(student));
         return res.status(200).json({data:student});
     } catch (error) {
         return res.sendStatus(500);
@@ -22,11 +22,11 @@ export const getStudent=async(req,res)=>{
 export const getStudentApplications=async(req,res)=>{
    try {
         const {page=0,limit=10,query="",status=""}=req.query;
-        let cachedKey=`applications:${page}`;
-        if(query)cachedKey+=`:query:${query}`;
-        if(status)cachedKey+=`:status:${status}`;
-        const resultFromCache = await redis.get(cachedKey);
-        if(resultFromCache)return res.status(200).json({data:JSON.parse(resultFromCache),cached:true});
+        // let cachedKey=`applications:${page}`;
+        // if(query)cachedKey+=`:query:${query}`;
+        // if(status)cachedKey+=`:status:${status}`;
+        // const resultFromCache = await redis.get(cachedKey);
+        // if(resultFromCache)return res.status(200).json({data:JSON.parse(resultFromCache),cached:true});
 
         let filter={};
         if(status && status !== "approved"){
@@ -60,10 +60,8 @@ export const getStudentApplications=async(req,res)=>{
                 }
             }
         }
-        console.log(filter);    
         const students = await studentApplicationModel.find(filter).skip(limit*page).limit(limit);
-        console.log(students);
-        await redis.setex(cachedKey,3600,JSON.stringify(students));
+        // await redis.setex(cachedKey,3600,JSON.stringify(students));
         if(students.length==0)return res.status(204).json({data:"No Student Applications"});
         return res.status(200).json({data:students});
     } catch (error) {
@@ -75,13 +73,13 @@ export const getStudentApplications=async(req,res)=>{
 export const getAllStudents=async(req,res)=>{
     try {
         const {limit,page,query,status="",room_assign=""}=req.query;
-        console.log(status);
-        let cachedKey=`student:${page}`;
-        if(query)cachedKey+=`:query:${query}`;
-        if(status)cachedKey+=`:status:${status}`;
-        if(room_assign)cachedKey+=`:room:${room_assign}`;
-        const cachedData=await redis.get(cachedKey);
-        if(cachedData){return res.status(200).json({data:JSON.parse(cachedData)})};
+        // console.log(status);
+        // let cachedKey=`student:${page}`;
+        // if(query)cachedKey+=`:query:${query}`;
+        // if(status)cachedKey+=`:status:${status}`;
+        // if(room_assign)cachedKey+=`:room:${room_assign}`;
+        // const cachedData=await redis.get(cachedKey);
+        // if(cachedData){return res.status(200).json({data:JSON.parse(cachedData)})};
        let filterKey = {};
 
     // If admin filters by status (accepted, approved, etc.)
@@ -116,7 +114,7 @@ export const getAllStudents=async(req,res)=>{
         const students = await studentApplicationModel.find(filterKey).skip(page*limit).limit(limit).populate("room_id");
         console.log(students)
         if(students.length<=0)return res.status(204).json({data:[]});
-        await redis.setex(cachedKey,3600,JSON.stringify(students));
+        // await redis.setex(cachedKey,3600,JSON.stringify(students));
         return res.status(200).json({data:students});
     } catch (error) {
         return res.sendStatus(500);
@@ -129,15 +127,15 @@ export const editStudent=async(req,res)=>{
         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
         if(!student)return res.sendStatus(500);
         console.log(student);
-        let cursor="0";
-        do {
-            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
-            cursor=reply[0];
-            const keys = reply[1];
-            if(keys.length>0){
-                await redis.del(...keys);
-            }
-        } while (cursor!=="0");
+        // let cursor="0";
+        // do {
+        //     const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+        //     cursor=reply[0];
+        //     const keys = reply[1];
+        //     if(keys.length>0){
+        //         await redis.del(...keys);
+        //     }
+        // } while (cursor!=="0");
         // console.log(student);
         return res.status(200).json({data:"Student Appication Status Updated."});
         // if(student===null)return res.send({status:400,data:"No Student Found."});
@@ -174,15 +172,15 @@ export const assignRoom=async(req,res)=>{
         }finally{
             await session.endSession();
         };
-        let cursor ="0";
-             do {
-            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
-            cursor=reply[0];
-            const keys = reply[1];
-            if(keys.length>0){
-                await redis.del(...keys);
-            }
-        } while (cursor!=="0");
+        // let cursor ="0";
+        //      do {
+        //     const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+        //     cursor=reply[0];
+        //     const keys = reply[1];
+        //     if(keys.length>0){
+        //         await redis.del(...keys);
+        //     }
+        // } while (cursor!=="0");
         return res.status(200).json({data:"Student Appication Status Updated."});
         // if(student===null)return res.send({status:400,data:"No Student Found."});
     } catch (error) {
@@ -213,15 +211,15 @@ const removeRoom=async(id)=>{
         await session.abortTransaction();
         return 500;
     }finally{
-        let cursor = "0";   
-                do {
-            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
-            cursor=reply[0];
-            const keys = reply[1];
-            if(keys.length>0){
-                await redis.del(...keys);
-            }
-        } while (cursor!=="0");
+        // let cursor = "0";   
+        //         do {
+        //     const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+        //     cursor=reply[0];
+        //     const keys = reply[1];
+        //     if(keys.length>0){
+        //         await redis.del(...keys);
+        //     }
+        // } while (cursor!=="0");
         await session.endSession();
     };
 };
@@ -251,17 +249,17 @@ export const addRoom=async(req,res)=>{
         const room = await roomModel.findOne({room_no});
         if(room)return res.status(301).json({data:"Room Already Added."});
         const result = await roomModel.create({room_no,total_beds,available_beds,status,block_id});
-        let cursor = "0";
-        do{
-            const reply = await redis.scan(cursor,'MATCH','rooms*','COUNT',100);
-            cursor = reply[0];
-            const keys = reply[1];
-            if(keys.length >0){
-                await redis.del(...keys);
-            }
-        }while(cursor !== "0");
-        // const keys = await redis.keys("rooms*");
-        // if(keys.length>0)await redis.del(keys);
+        // let cursor = "0";
+        // do{
+        //     const reply = await redis.scan(cursor,'MATCH','rooms*','COUNT',100);
+        //     cursor = reply[0];
+        //     const keys = reply[1];
+        //     if(keys.length >0){
+        //         await redis.del(...keys);
+        //     }
+        // }while(cursor !== "0");
+        const keys = await redis.keys("rooms*");
+        if(keys.length>0)await redis.del(keys);
         return res.status(200).json({data:"Room Successfull Added.",result});
     } catch (error) {
     return res.sendStatus(500);
@@ -270,11 +268,11 @@ export const addRoom=async(req,res)=>{
 export const getRoom=async(req,res)=>{
 try {
     const {id}=req.params;
-    const cachedRoom=await redis.get(`room:${id}`);
-    if(cachedRoom)return res.status(200).json({data:JSON.parse(cachedRoom)});
+    // const cachedRoom=await redis.get(`room:${id}`);
+    // if(cachedRoom)return res.status(200).json({data:JSON.parse(cachedRoom)});
     const room = await roomModel.findOne({_id:id}).populate('block_id');
     if(!room)return res.sendStatus(204);
-    await redis.setex(`room:${id}`,3600,JSON.stringify(room));
+    // await redis.setex(`room:${id}`,3600,JSON.stringify(room));
     return res.status(200).json({data:room});
 } catch (error) {
     return res.sendStatus(500);
@@ -283,14 +281,14 @@ try {
 export const getRooms=async(req,res)=>{
     try {
         const {page,limit,query="",status=""}=req.query;
-        const statCachedKey='rooms:stats';
-        let cachedKey=`rooms:${page}`;
-        if(query)cachedKey+=`:query:${query}`;
-        if(status)cachedKey+=`:status:${status}`;
-        const roomsFromCache=await redis.get(cachedKey);
-        let roomStatsFromCache=await redis.get(statCachedKey);
-        if(roomStatsFromCache)roomStatsFromCache=JSON.parse(roomStatsFromCache);
-        else{
+        // const statCachedKey='rooms:stats';
+        // let cachedKey=`rooms:${page}`;
+        // if(query)cachedKey+=`:query:${query}`;
+        // if(status)cachedKey+=`:status:${status}`;
+        // const roomsFromCache=await redis.get(cachedKey);
+        let roomStatsFromCache;
+        // if(roomStatsFromCache)roomStatsFromCache=JSON.parse(roomStatsFromCache);
+        // else{
             const roomStatsAgg = await roomModel.aggregate([{$group:{_id:"$status",count:{$sum:1}}}]);
             const totalRooms=await roomModel.countDocuments();
             const stats={
@@ -300,18 +298,18 @@ export const getRooms=async(req,res)=>{
                 maintenanceRooms:roomStatsAgg.find(r => r._id==="maintenance")?.count || 0
             };
             roomStatsFromCache=stats;
-            await redis.setex(statCachedKey,3600,JSON.stringify(stats));
-        }
-        if(roomsFromCache){
-            return res.status(200).json({data:JSON.parse(roomsFromCache),stats:roomStatsFromCache});
-        };
+            // await redis.setex(statCachedKey,3600,JSON.stringify(stats));
+        // }
+        // if(roomsFromCache){
+        //     return res.status(200).json({data:JSON.parse(roomsFromCache),stats:roomStatsFromCache});
+        // };
         let filterKey={};
         let roomNo=query.toLowerCase();
         if(query)filterKey.room_no={$regex:roomNo,$options:"i"};
         if(status)filterKey.status=status;
         const rooms = await roomModel.find(filterKey).skip(limit*page).limit(limit);
         if(rooms.length <=0)return res.status(204).json({data:[]});
-        await redis.setex(cachedKey,3600,JSON.stringify(rooms));
+        // await redis.setex(cachedKey,3600,JSON.stringify(rooms));
         return res.status(200).json({data:rooms,stats:roomStatsFromCache});
     } catch (error) {
         return res.status(500).json({data:"Internal Server Error"});
@@ -320,13 +318,13 @@ export const getRooms=async(req,res)=>{
 export const handleGetRoomsWithBlock=async(req,res)=>{
     console.log("yes im here bro");
     try {
-        const {block}=req.query;
-        const cachedKey=`rooms_and_block:${block}`;
-        const cachedData=await redis.get(cachedKey);
-        if(cachedData)return res.status(200).json({data:JSON.parse(cachedData)});
+        // const {block}=req.query;
+        // const cachedKey=`rooms_and_block:${block}`;
+        // const cachedData=await redis.get(cachedKey);
+        // if(cachedData)return res.status(200).json({data:JSON.parse(cachedData)});
         const result = await roomModel.find({block_id:block});
         if(result.length<=0)return res.sendStatus(204);
-        await redis.setex(cachedKey,3600,JSON.stringify(result));
+        // await redis.setex(cachedKey,3600,JSON.stringify(result));
         return res.status(200).json({data:result});
     } catch (error) {
         return res.sendStatus(500);

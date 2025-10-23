@@ -1,6 +1,6 @@
 import userModel from "../models/userModel.js";
-import { changePasswordVerification } from "../services/emailJobs.js";
-import redis from "../services/Redis.js";
+// import { changePasswordVerification } from "../services/emailJobs.js";
+// import redis from "../services/Redis.js";
 import bcrypt from "bcrypt";
 
 export const getProfileInformation=async(req,res)=>{
@@ -43,7 +43,7 @@ export const requestPasswordChange =async(req,res)=>{
         userData.passwordResetCode=hashedCode;
         userData.passwordResetExpires=Date.now() + 5 * 60 * 1000;
         await userData.save();
-        await changePasswordVerification(userData.email,code);
+        // await changePasswordVerification(userData.email,code);
         return res.status(200).json({message:"Verification code sent to your email"});
     } catch (error) {
         return res.sendStatus(500);

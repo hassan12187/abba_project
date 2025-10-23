@@ -16,6 +16,7 @@ import notificationRoutes from "./routers/notificationRoutes.js";
 import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
 import settingsRoute from "./routers/settingsRoute.js";
 import maintenanceStaffRoutes from "./routers/maintenanceStaffRoutes.js";
+import complaintRoutes from "./routers/complaintRoutes.js";
 import cookieParser from "cookie-parser";
 import {Server} from "socket.io";
 import {createServer} from "http";
@@ -42,6 +43,7 @@ app.use("/static",staticRoutes);
 app.use(limiter);
         
 app.use(authRoutes);
+app.use("/api",complaintRoutes);
 app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
 app.use("/api/admin/expense",expenseRoute);
