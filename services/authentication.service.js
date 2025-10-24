@@ -42,18 +42,33 @@ export const Login=async(req,res)=>{
 export const isAuthorized=async(req,res,next)=>{
     try {
         const token=req.headers?.authorization;
-        if(token == "" || token==null || token==undefined)return res.status(401).json({data:"Unauthorized Http Requests."});
+        if(token == "" || token==null || token==undefined)return res.sendStatus(403);
         const parsedToken=token.split("Bearer ")[1];
         const userData=checkToken(parsedToken);
         if(userData.role=="ADMIN") {
             req.id=userData.id;
             return next();
         };
-        return res.status(403).json({data:"UNAUTHORIZED."});
+        return res.sendStatus(403);
     } catch (error) {
-        return res.status(500).json({data:"Internal Server Error."});
+        return res.sendStatus(500);
     }
 };
+export const isAuthorizedStudentOrAdmin=async(req,res,next)=>{
+    try {
+        const token = req.headers?.authorization;
+        if(token =="" || token==null || token==undefined)return res.sendStatus(403);
+        const parsedToken=token.split("Bearer ")[1];
+        const tokenPayload=checkToken(parsedToken);
+        if(tokenPayload.role == "STUDENT" || tokenPayload.role=="ADMIN"){
+            req.id=tokenPayload.id;
+            return next();
+        };
+        return res.sendStatus(403);
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+}
 export const verifyCsrf=async(req,res,next)=>{
     const cookieToken=req.cookies.csrfToken;
     const headerToken=req.headers['x-csrf-token'];

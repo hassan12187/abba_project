@@ -13,7 +13,7 @@ export const getAllComplaints=async(req,res)=>{
 export const getComplain=async(req,res)=>{
     try {
         const {id}=req.params;
-        const complain = await ComplainModel.findOne({_id:id});
+        const complain = await ComplainModel.findOne({_id:id}).populate(["student_id","room_id"]);
         if(!complain)return res.sendStatus(204);
         return res.status(200).send(complain);
     } catch (error) {
@@ -30,3 +30,13 @@ export const addComplain=async(req,res)=>{
         return res.sendStatus(500);
     }
 };
+export const editComplain=async(req,res)=>{
+    try {
+        const {id}=req.params;
+        const result = await ComplainModel.findOneAndUpdate({_id:id},{$set:req.body});
+        if(!result)return res.sendStatus(403);
+        return res.sendStatus(200);
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+}

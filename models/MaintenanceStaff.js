@@ -7,7 +7,7 @@ const maintenanceStaff=new Schema({
     enum: ["Electrical", "Plumbing", "Cleaning", "Furniture"]
   },
   contact: String,
-  availability_status: {
+  status: {
     type: String,
     enum: ["Available", "Busy"],
     default: "Available"

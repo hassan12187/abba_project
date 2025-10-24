@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { isAuthorized } from "../services/authentication.service.js";
-import { addComplain ,getAllComplaints,getComplain} from "../controllers/complaintController.js";
+import { isAuthorized, isAuthorizedStudentOrAdmin } from "../services/authentication.service.js";
+import { addComplain ,editComplain,getAllComplaints,getComplain} from "../controllers/complaintController.js";
 
 const routes = Router();
 routes.get('/admin/complaint',isAuthorized,getAllComplaints);
-routes.post("/complaint",addComplain);
-routes.get('/complaint/:id',getComplain);
-routes.patch('/admin/complaint/:id',isAuthorized);
+routes.post("/complaint",isAuthorizedStudentOrAdmin,addComplain);
+routes.get('/complaint/:id',isAuthorizedStudentOrAdmin,getComplain);
+routes.patch('/admin/complaint/:id',isAuthorized,editComplain);
 export default routes;

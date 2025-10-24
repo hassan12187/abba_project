@@ -1,6 +1,8 @@
 import { Router } from "express";
-import {addStaff,getStaffs} from "../controllers/staffController.js";
+import {addStaff,editStaff,getStaff,getStaffs} from "../controllers/staffController.js";
 const routes = Router();
 routes.get("/",getStaffs);
 routes.post("/",addStaff);
+routes.get("/:id",getStaff);
+routes.patch("/:id",editStaff);
 export default routes;
