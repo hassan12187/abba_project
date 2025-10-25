@@ -1,9 +1,17 @@
 import ComplainModel from "../models/complaintModel.js";
+import roomModel from "../models/roomModel.js";
 
 export const getAllComplaints=async(req,res)=>{
     try {
-        const {page,limit}=req.query;
-        const complaints = await ComplainModel.find().skip(page*limit).limit();
+        const {page,limit,room_no="",category="",status=""}=req.query;
+        let filterKey={};
+        // let rooms;
+        // if(room_no){
+        //     rooms=await roomModel.find({room_no:room_no});
+        // };
+        if(category)filterKey.category=category;
+        if(status)filterKey.status=status;
+        const complaints = await ComplainModel.find(filterKey).skip(page*limit).limit();
         if(complaints.length<=0)return res.sendStatus(204);
         return res.status(200).send(complaints);
     } catch (error) {

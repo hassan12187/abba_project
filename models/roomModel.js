@@ -10,11 +10,27 @@ const roomSchema=new Schema({
     available_beds:{
         type:Number
     },
+    floor:{
+        type:Number,
+        required:true
+    },
     block_id:{
         type:Schema.Types.ObjectId,
         ref:"Block",
         required:true
     },
+    occupants:[
+        {
+            type:Schema.Types.ObjectId,
+            ref:"student_application"
+        }
+    ],
+    amenities:[
+        {
+            type:Schema.Types.ObjectId,
+            ref:"amenity"
+        }
+    ],
     status:{
         type:String,
         enum:["available","occupied","maintenance"],

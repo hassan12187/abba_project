@@ -43,6 +43,7 @@ app.use("/static",staticRoutes);
 app.use(limiter);
         
 app.use(authRoutes);
+// Complains Route start
 app.use("/api",complaintRoutes);
 app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
