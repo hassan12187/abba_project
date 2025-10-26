@@ -12,7 +12,6 @@ const maintenanceStaff=new Schema({
     enum: ["Available", "Busy"],
     default: "Available"
   }
-
 });
 const MaintenanceStaff=model('MaintenanceStaff',maintenanceStaff);
 export default MaintenanceStaff

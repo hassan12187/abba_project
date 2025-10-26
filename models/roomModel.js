@@ -31,6 +31,12 @@ const roomSchema=new Schema({
             ref:"amenity"
         }
     ],
+    maintenance_record:[
+        {
+            type:Schema.Types.ObjectId,
+            ref:"maintenance"
+        }
+    ],
     status:{
         type:String,
         enum:["available","occupied","maintenance"],
