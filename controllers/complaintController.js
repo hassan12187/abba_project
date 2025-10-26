@@ -1,5 +1,6 @@
+import { startSession } from "mongoose";
 import ComplainModel from "../models/complaintModel.js";
-import roomModel from "../models/roomModel.js";
+import MaintenanceModel from "../models/Maintenance.js";
 
 export const getAllComplaints=async(req,res)=>{
     try {
@@ -47,4 +48,25 @@ export const editComplain=async(req,res)=>{
     } catch (error) {
         return res.sendStatus(500);
     }
-}
+};
+export const approveComplain=async(req,res)=>{
+    const session = await startSession();
+    session.startTransaction();
+    try {
+        const {id}=req.params;
+            const complaint=await ComplainModel.findOne({_id:id}).session(session);
+            if(!complaint){
+                await session.abortTransaction();
+                await session.endSession();
+                return res.status(404).json({message:"Complaint Not Found."});
+            }
+            complaint.status="In Progress";
+            await complaint.save({session});
+            await MaintenanceModel.create({complain:complaint._id,room:complaint.room_id,issue_description:complaint.description},{session})
+            await session.commitTransaction();
+    } catch (error) {
+        await session.abortTransaction();
+        await session.endSession();
+        return res.sendStatus(500);
+    }
+};

@@ -29,7 +29,7 @@ const maintenanceSchema=new Schema({
         type:Date,
         default:Date.now
     },
-    resoved_date:{
+    resolved_date:{
         type:Date,
     },
     handled_by:{
