@@ -1,6 +1,6 @@
-import { io } from "../index.js";
-import NotificationModel from "../models/notificationModel.js";
-import studentApplicationModel from "../models/studentApplicationModel.js";
+import { io } from "../../index.js";
+import NotificationModel from "../../models/notificationModel.js";
+import studentApplicationModel from "../../models/studentApplicationModel.js";
 // import redis from "../services/Redis.js";
 
 export const RegisterApplication=async(req,res)=>{

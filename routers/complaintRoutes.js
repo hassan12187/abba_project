@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { isAuthorized, isAuthorizedStudentOrAdmin } from "../services/authentication.service.js";
-import { addComplain ,editComplain,getAllComplaints,getComplain,approveComplain} from "../controllers/complaintController.js";
+import { addComplain ,editComplain,getAllComplaints,getComplain,approveComplain} from "../controllers/adminController/complaintController.js";
 
 const routes = Router();
 routes.get('/admin/complaint',isAuthorized,getAllComplaints);

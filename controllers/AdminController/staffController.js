@@ -1,4 +1,4 @@
-import MaintenanceStaff from "../models/MaintenanceStaff.js";
+import MaintenanceStaff from "../../models/MaintenanceStaff.js";
 
 export const getStaffs=async(req,res)=>{
     try {

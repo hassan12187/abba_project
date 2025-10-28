@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleRefreshToken, handleLogout } from "../controllers/authController.js";
+import { handleRefreshToken, handleLogout } from "../controllers/staficController/authController.js";
 
 const routes=Router();
 routes.post('/refresh-token',handleRefreshToken);

@@ -1,4 +1,4 @@
-import NotificationModel from "../models/notificationModel.js";
+import NotificationModel from "../../models/notificationModel.js";
 // import redis from "../services/Redis.js";
 
 export const getNotifications=async(req,res)=>{

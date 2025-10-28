@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllExpense,addExpense ,getExpense} from "../controllers/expenseController.js";
+import { getAllExpense,addExpense ,getExpense} from "../controllers/adminController/expenseController.js";
 
 const routes=Router();
 routes.get("/",getAllExpense);

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleUpdateProfileInformation,getProfileInformation,requestPasswordChange} from "../controllers/settingsController.js";
+import { handleUpdateProfileInformation,getProfileInformation,requestPasswordChange} from "../controllers/adminController/settingsController.js";
 
 const routes=Router();
 routes.get('/profile-information',getProfileInformation)

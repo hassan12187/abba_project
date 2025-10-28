@@ -1,6 +1,6 @@
 import mongoose, { startSession } from "mongoose";
-import roomModel from "../models/roomModel.js";
-import studentApplicationModel from "../models/studentApplicationModel.js";
+import roomModel from "../../models/roomModel.js";
+import studentApplicationModel from "../../models/studentApplicationModel.js";
 // import redis from "../services/Redis.js";   
 
 export const getStudent=async(req,res)=>{

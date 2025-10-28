@@ -1,6 +1,6 @@
 import { startSession } from "mongoose";
-import ComplainModel from "../models/complaintModel.js";
-import MaintenanceModel from "../models/Maintenance.js";
+import ComplainModel from "../../models/complaintModel.js";
+import MaintenanceModel from "../../models/Maintenance.js";
 
 export const getAllComplaints=async(req,res)=>{
     try {

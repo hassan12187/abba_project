@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleAddPayment, handleGetAllPayment, handleGetPayments } from "../controllers/paymentController.js";
+import { handleAddPayment, handleGetAllPayment, handleGetPayments } from "../controllers/adminController/paymentController.js";
 import { verifyCsrf } from "../services/authentication.service.js";
 const routes=Router();
 routes.post("/",handleAddPayment);

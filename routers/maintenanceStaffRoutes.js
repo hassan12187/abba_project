@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {addStaff,editStaff,getStaff,getStaffs} from "../controllers/staffController.js";
+import {addStaff,editStaff,getStaff,getStaffs} from "../controllers/adminController/staffController.js";
 const routes = Router();
 routes.get("/",getStaffs);
 routes.post("/",addStaff);

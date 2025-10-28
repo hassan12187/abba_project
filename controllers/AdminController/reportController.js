@@ -1,4 +1,4 @@
-import reportModel from "../models/reportModel.js";
+import reportModel from "../../models/reportModel.js";
 
 export const handleGetReport=async(req,res)=>{
     try {

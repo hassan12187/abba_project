@@ -1,4 +1,4 @@
-import userModel from "../models/userModel.js";
+import userModel from "../../models/userModel.js";
 // import { changePasswordVerification } from "../services/emailJobs.js";
 // import redis from "../services/Redis.js";
 import bcrypt from "bcrypt";

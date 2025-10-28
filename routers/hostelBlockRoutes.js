@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleAddBlock, handleGetAllBlocks,handleGetBlocks,handleGetBlock ,handleEditBlock} from "../controllers/hostelBlockController.js";
+import { handleAddBlock, handleGetAllBlocks,handleGetBlocks,handleGetBlock ,handleEditBlock} from "../controllers/adminController/hostelBlockController.js";
 
 const routes=Router();
 routes.get('/',handleGetAllBlocks);

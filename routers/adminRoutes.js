@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllStudents, getStudent, assignRoom, getRooms,getRoom, addRoom,getStudentApplications,handleGetRoomsWithBlock } from "../controllers/adminController.js";
+import { getAllStudents, getStudent, assignRoom, getRooms,getRoom, addRoom,getStudentApplications,handleGetRoomsWithBlock } from "../controllers/adminController/adminController.js";
 
 const routes = Router();
 routes.get("/students",getAllStudents);

@@ -1,5 +1,5 @@
-import userModel from "../models/userModel.js";
-import { getAccessToken, getRefreshedToken } from "../services/jwtService.js";
+import userModel from "../../models/userModel.js";
+import { getAccessToken, getRefreshedToken } from "../../services/jwtService.js";
 import jwt from "jsonwebtoken";
 
 export const handleRefreshToken=async(req,res)=>{
