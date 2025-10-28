@@ -1,5 +1,5 @@
 import HostelBlockModel from "../../models/HostelBlockModel.js";
-import redis from "../services/Redis.js";   
+import redis from "../../services/Redis.js";   
 
 export const handleGetAllBlocks=async(req,res)=>{
     try {

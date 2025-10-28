@@ -1,6 +1,6 @@
 import userModel from "../../models/userModel.js";
 import bcrypt from "bcrypt";
-import { changePasswordVerification } from "../services/emailJobs.js";
+import { changePasswordVerification } from "../../services/emailJobs.js";
 import jwt from "jsonwebtoken";
 
 export const handleRequestPasswordChange=async(req,res)=>{

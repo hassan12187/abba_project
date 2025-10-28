@@ -10,13 +10,14 @@ import reportRoute from "./routers/reportRoutes.js"
 import { schedule } from "node-cron";
 import { handleGenerateMontlyReport } from "./services/monthlyReportService.js";
 import rateLimit from "express-rate-limit";
-import { isAuthorized } from "./services/authentication.service.js";
+import { isAuthorized, isAuthorizedStudentOrAdmin } from "./services/authentication.service.js";
 import authRoutes from "./routers/authRoutes.js";
 import notificationRoutes from "./routers/notificationRoutes.js";
 import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
 import settingsRoute from "./routers/settingsRoute.js";
 import maintenanceStaffRoutes from "./routers/maintenanceStaffRoutes.js";
 import complaintRoutes from "./routers/complaintRoutes.js";
+import studentRoutes from "./routers/studentRoutes.js";
 import cookieParser from "cookie-parser";
 import {Server} from "socket.io";
 import {createServer} from "http";
@@ -43,7 +44,7 @@ app.use("/static",staticRoutes);
 app.use(limiter);
         
 app.use(authRoutes);
-// Complains Route start
+// Admin Routes
 app.use("/api",complaintRoutes);
 app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
@@ -54,6 +55,9 @@ app.use("/api/admin/block",hostelBlockRoutes);
 app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
 app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
+
+// Student Routes
+app.use("/api/student",isAuthorizedStudentOrAdmin,studentRoutes);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");

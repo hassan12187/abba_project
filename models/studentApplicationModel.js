@@ -16,6 +16,9 @@ const studentApplicationSchema=new Schema({
         trim:true,
         unique:true
     },
+    student_password:{
+        type:String
+    },
     student_roll_no:{
         type:Number,
         unique:true

@@ -1,7 +1,31 @@
 import { startSession } from "mongoose";
 import roomModel from "../../models/roomModel.js";
 import studentApplicationModel from "../../models/studentApplicationModel.js";
-import redis from "../services/Redis.js";   
+import redis from "../../services/Redis.js";   
+import { sentLoginCredToApproveStudent } from "../../services/emailJobs.js";
+import generatePassword from "../../services/generatePassword.js";
+import bcrypt from "bcrypt";
+
+export const approveStudentApplication=async(req,res)=>{
+    console.log("approving student application");
+    try {
+        const {id}=req.params;
+        const student=await studentApplicationModel.findOne({_id:id});
+        if(!student)return res.status(404).json({message:"Student Not Found."});
+        if(student.status=="approved"){
+            return res.status(400).json({message:"Student Already Approved."});
+        }
+        const password=generatePassword();
+        const hashPass=await bcrypt.hash(password,10);
+        student.student_password=hashPass;
+        student.status="approved";
+        await student.save();
+        await sentLoginCredToApproveStudent(student.student_email,password);
+        return res.status(200).json({message:"Student approved Successfully."});
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+};
 
 export const getStudent=async(req,res)=>{
     console.log("me toh agya abba");
@@ -126,7 +150,6 @@ export const editStudent=async(req,res)=>{
         // const {first_name,last_name,status,application_status,cnic,cellphone,room_id,address,emergency_contact,registration_date}=req.body;
         const student = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:req.body});
         if(!student)return res.sendStatus(500);
-        console.log(student);
         let cursor="0";
         do {
             const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
@@ -269,7 +292,7 @@ try {
     const {id}=req.params;
     const cachedRoom=await redis.get(`room:${id}`);
     if(cachedRoom)return res.status(200).json({data:JSON.parse(cachedRoom)});
-    const room = await roomModel.findOne({_id:id}).populate('block_id');
+    const room = await roomModel.findOne({_id:id}).populate(['block_id','amenities']);
     if(!room)return res.sendStatus(204);
     await redis.setex(`room:${id}`,3600,JSON.stringify(room));
     return res.status(200).json({data:room});

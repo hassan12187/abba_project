@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { RegisterApplication } from "../controllers/studentController.js";
+import { getStudentDetails,getRoomMates } from "../controllers/studentController/studentController.js";
 const routes = Router();
-routes.post('/student',RegisterApplication);
+routes.get("/details",getStudentDetails);
+routes.get('/room-mates',getRoomMates);
 export default routes;

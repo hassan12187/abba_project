@@ -12,3 +12,12 @@ export const changePasswordVerification=async(email,code)=>{
              <p>This code will expire in 5 minutes.</p>`
     });
 };
+export const sentLoginCredToApproveStudent=async(email,pass)=>{
+    await emailQueue.add("sendCredToStudent",{
+        to:email,
+        subject:"Mehran Hostel. Student Credentials",
+        html:`<p>Use This Password to Login into your Mehran Student Portal</p>
+        <h2>${pass}</h2>
+        `
+    });
+};

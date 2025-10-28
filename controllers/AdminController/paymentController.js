@@ -1,5 +1,5 @@
 import paymentModel from "../../models/paymentModel.js";
-import redis from "../services/Redis.js";
+import redis from "../../services/Redis.js";
 
 export const handleAddPayment=async(req,res)=>{
     try {
