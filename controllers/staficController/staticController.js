@@ -1,6 +1,6 @@
 import userModel from "../../models/userModel.js";
 import bcrypt from "bcrypt";
-// import { changePasswordVerification } from "../services/emailJobs.js";
+import { changePasswordVerification } from "../services/emailJobs.js";
 import jwt from "jsonwebtoken";
 
 export const handleRequestPasswordChange=async(req,res)=>{
@@ -14,7 +14,7 @@ export const handleRequestPasswordChange=async(req,res)=>{
         user.passwordResetCode=hashedCode;
         user.passwordResetExpires=Date.now()+5*60*1000;
         await user.save();
-        // await changePasswordVerification(email,code);
+        await changePasswordVerification(email,code);
         return res.status(200).send("Verification Code send to Your Email");
     } catch (error) {
         return res.sendStatus(500);

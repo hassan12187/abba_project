@@ -1,18 +1,18 @@
 import userModel from "../../models/userModel.js";
-// import { changePasswordVerification } from "../services/emailJobs.js";
-// import redis from "../services/Redis.js";
+import { changePasswordVerification } from "../services/emailJobs.js";
+import redis from "../services/Redis.js";
 import bcrypt from "bcrypt";
 
 export const getProfileInformation=async(req,res)=>{
     try {
         const id = req.id;
-        // const cachedData=await redis.get(`details:${id}`);
-        // let parsedData=JSON.parse(cachedData);
-        // if(cachedData)return res.status(200).json({data:{email:parsedData?.email,username:parsedData?.username,id:parsedData?._id,phone:parsedData?.phone}});
+        const cachedData=await redis.get(`details:${id}`);
+        let parsedData=JSON.parse(cachedData);
+        if(cachedData)return res.status(200).json({data:{email:parsedData?.email,username:parsedData?.username,id:parsedData?._id,phone:parsedData?.phone}});
         const user=await userModel.findOne({_id:id});
         console.log(user);
         if(!user)return res.sendStatus(204);
-        // await redis.setex(`details:${id}`,3600,JSON.stringify(user));
+        await redis.setex(`details:${id}`,3600,JSON.stringify(user));
         return res.status(200).json({data:{email:user.email,username:user.username,id:user._id,phone:user?.phone}});
     } catch (error) {
         return res.sendStatus(500);
@@ -23,8 +23,8 @@ export const handleUpdateProfileInformation=async(req,res)=>{
         const {id}=req.params;
         const result = await userModel.findByIdAndUpdate({_id:id},{$set:req.body},{new:true});
         if(!result)return res.sendStatus(409);
-        // await redis.del(`details:${id}`);
-        // await redis.setex(`details:${id}`,3600,JSON.stringify(result));
+        await redis.del(`details:${id}`);
+        await redis.setex(`details:${id}`,3600,JSON.stringify(result));
         return res.sendStatus(200);
     } catch (error) {
         return res.sendStatus(500);
@@ -43,7 +43,7 @@ export const requestPasswordChange =async(req,res)=>{
         userData.passwordResetCode=hashedCode;
         userData.passwordResetExpires=Date.now() + 5 * 60 * 1000;
         await userData.save();
-        // await changePasswordVerification(userData.email,code);
+        await changePasswordVerification(userData.email,code);
         return res.status(200).json({message:"Verification code sent to your email"});
     } catch (error) {
         return res.sendStatus(500);
