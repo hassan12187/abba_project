@@ -5,24 +5,33 @@ import redis from "../../services/Redis.js";
 import { sentLoginCredToApproveStudent } from "../../services/emailJobs.js";
 import generatePassword from "../../services/generatePassword.js";
 import bcrypt from "bcrypt";
+import userModel from "../../models/userModel.js";
 
 export const approveStudentApplication=async(req,res)=>{
     console.log("approving student application");
+    const session = await startSession();
+    session.startTransaction();
     try {
         const {id}=req.params;
-        const student=await studentApplicationModel.findOne({_id:id});
+        const student=await studentApplicationModel.findOne({_id:id}).session(session);
         if(!student)return res.status(404).json({message:"Student Not Found."});
         if(student.status=="approved"){
             return res.status(400).json({message:"Student Already Approved."});
         }
+        const isExistingUser=await userModel.findOne({email:student.student_email}).session(session);
+        if(isExistingUser)return res.status(400).json({message:"User Already Exist."});
         const password=generatePassword();
-        const hashPass=await bcrypt.hash(password,10);
-        student.student_password=hashPass;
         student.status="approved";
-        await student.save();
+        await student.save({session});
+        await userModel.create([{
+            email:student.student_email,password:password,phone:student.student_cellphone,username:student.student_name,role:"STUDENT"}],{session});
+        await session.commitTransaction();
+        await session.endSession();
         await sentLoginCredToApproveStudent(student.student_email,password);
         return res.status(200).json({message:"Student approved Successfully."});
     } catch (error) {
+        await session.abortTransaction();
+        await session.endSession();
         return res.sendStatus(500);
     }
 };
@@ -35,7 +44,6 @@ export const getStudent=async(req,res)=>{
         console.log(JSON.parse(studentCached));
         if(studentCached)return res.status(200).json({data:JSON.parse(studentCached)});
         const student = await studentApplicationModel.findOne({_id:id}).populate("room_id");
-        console.log(student);
         if(!student)return res.status(204).json({data:"No matching student record was found."});
         await redis.setex(`student:${id}`,3600,JSON.stringify(student));
         return res.status(200).json({data:student});

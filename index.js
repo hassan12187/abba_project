@@ -28,9 +28,17 @@ import helmet from "helmet";
 
 config();   
 const app=express();
+const allowedOrigins=[process.env.ADMIN_FRONTEND_ORIGIN,process.env.STUDENT_PORTAL_FRONTEND_ORIGIN];
+
 app.use(helmet());
 app.use(cors({
-    origin:process.env.FRONTEND_ORIGIN,
+    origin:function(origin,callback){
+        if(!origin || allowedOrigins.includes(origin)){
+            callback(null,true);
+        }else{
+            callback(new Error("Not Allowed."));
+        }
+    },
     credentials:true
 }));
 app.use(express.json());
@@ -66,7 +74,7 @@ handleGenerateMontlyReport();
 const server = createServer(app);
 export const io = new Server(server,{
     cors:{
-        origin:process.env.FRONTEND_ORIGIN,
+        origin:process.env.ADMIN_FRONTEND_ORIGIN,
         credentials:true,
     },
 });

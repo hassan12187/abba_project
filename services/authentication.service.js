@@ -6,8 +6,10 @@ export const Login=async(req,res)=>{
     try {
     const {email,password}=req.body;
     const userData=await userModel.findOne({email});
+    console.log(userData);
     if(!userData)return res.status(401).send("Invalid Credentials.");
     const isMatched=await bcrypt.compare(password,userData.password);
+    console.log(isMatched);
     if(!isMatched)return res.status(401).send("Invalid Credentials.");
     const accessToken=getAccessToken(userData);
     const refreshedToken=getRefreshedToken(userData._id);
@@ -64,9 +66,9 @@ export const isAuthorizedStudentOrAdmin=async(req,res,next)=>{
             req.id=tokenPayload.id;
             return next();
         };
-        return res.sendStatus(403);
+        return res.status(400).json({message:"Not Authorized."});
     } catch (error) {
-        return res.sendStatus(500);
+        return res.status(500).json({message:"Internal Server Error."});
     }
 }
 export const verifyCsrf=async(req,res,next)=>{
