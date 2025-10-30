@@ -7,12 +7,10 @@ const roomSchema=new Schema({
     total_beds:{
         type:Number
     },
-    available_beds:{
-        type:Number
-    },
     floor:{
         type:Number,
-        required:true
+        required:true,
+        default:1
     },
     block_id:{
         type:Schema.Types.ObjectId,
@@ -42,6 +40,9 @@ const roomSchema=new Schema({
         enum:["available","occupied","maintenance"],
         default:"available"
     }
+});
+roomSchema.virtual("available_beds").get(function(){
+    return this.total_beds-this.occupants.length;
 });
 const roomModel=model("room",roomSchema);
 export default roomModel;

@@ -4,7 +4,6 @@ import studentApplicationModel from "../../models/studentApplicationModel.js";
 import redis from "../../services/Redis.js";   
 import { sentLoginCredToApproveStudent } from "../../services/emailJobs.js";
 import generatePassword from "../../services/generatePassword.js";
-import bcrypt from "bcrypt";
 import userModel from "../../models/userModel.js";
 
 export const approveStudentApplication=async(req,res)=>{
@@ -41,7 +40,6 @@ export const getStudent=async(req,res)=>{
     try {
         const {id}=req.params;
         const studentCached=await redis.get(`student:${id}`);
-        console.log(JSON.parse(studentCached));
         if(studentCached)return res.status(200).json({data:JSON.parse(studentCached)});
         const student = await studentApplicationModel.findOne({_id:id}).populate("room_id");
         if(!student)return res.status(204).json({data:"No matching student record was found."});
@@ -142,9 +140,7 @@ export const getAllStudents=async(req,res)=>{
       filterKey.room_id = null;
     }
 
-        console.log("fulter ",filterKey)
         const students = await studentApplicationModel.find(filterKey).skip(page*limit).limit(limit).populate("room_id");
-        console.log(students)
         if(students.length<=0)return res.status(204).json({data:[]});
         await redis.setex(cachedKey,3600,JSON.stringify(students));
         return res.status(200).json({data:students});
@@ -167,54 +163,49 @@ export const editStudent=async(req,res)=>{
                 await redis.del(...keys);
             }
         } while (cursor!=="0");
-        console.log(student);
         return res.status(200).json({data:"Student Appication Status Updated."});
     } catch (error) {
         return res.sendStatus(500);
     }
 };
 export const assignRoom=async(req,res)=>{
+    const {id}=req.params;
+    const {room_id}=req.body;
+    if(!room_id){
+        let status = await removeRoom(id)
+        return res.sendStatus(status);
+    };
+    const session = await startSession();
+    session.startTransaction();
     try {
-        const {id}=req.params;
-        const {room_id}=req.body;
-        if(!room_id){
-            let status = await removeRoom(id)
-            return res.sendStatus(status);
-        };
 
-        const session = await startSession();
-        session.startTransaction();
-        try {
             await studentApplicationModel.findOneAndUpdate({_id:id},{$set:{room_id:room_id}},{session});
-            const room = await roomModel.findOne({_id:room_id});
-            if(room.available_beds<=0){
-                session.abortTransaction();
-                return res.status(403).send("No Beds Available.")};
-                if(!room){
-                    session.abortTransaction();
-                    return res.sendStatus(204)};
-                    room.available_beds-=1;
-                    await room.save({session});
-            await session.commitTransaction();
-        } catch (error) {
-            await session.abortTransaction();
-            return res.status(403).send("Error Assigning Room.");
-        }finally{
-            await session.endSession();
-        };
-        let cursor ="0";
-             do {
-            const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
-            cursor=reply[0];
-            const keys = reply[1];
-            if(keys.length>0){
-                await redis.del(...keys);
+            const room = await roomModel.findOne({_id:room_id}).session(session);
+            if(!room || room.available_beds<=0){
+                console.log("condition true");
+                await session.abortTransaction();
+                await session.endSession();
+                return res.sendStatus(400);
+            };
+            room.occupants.push(id);
+            await room.save({session});
+            let cursor ="0";
+            do {
+                const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
+                cursor=reply[0];
+                const keys = reply[1];
+                if(keys.length>0){
+                    await redis.del(...keys);
             }
         } while (cursor!=="0");
+        await session.commitTransaction();
         return res.status(200).json({data:"Student Appication Status Updated."});
         // if(student===null)return res.send({status:400,data:"No Student Found."});
     } catch (error) {
         console.log(error);
+        console.log("im in catch");
+        await session.abortTransaction();
+        await session.endSession();
         return res.sendStatus(500);
     }
 }
@@ -233,7 +224,7 @@ const removeRoom=async(id)=>{
             await session.abortTransaction();
             return 400;
         };
-        await roomModel.updateOne({_id:room_id},{$inc:{available_beds:1}},{session});
+        await roomModel.updateOne({_id:room_id},{$pullAll:{occupants:[student._id]}},{session});
         await session.commitTransaction();
         return 200;
     } catch (error) {
@@ -253,26 +244,6 @@ const removeRoom=async(id)=>{
         await session.endSession();
     };
 };
-// export const handleStudentStatus=async(req,res)=>{
-//     try {
-//         const {id}=req.params;
-//         const {application_status}=req.body;
-//         const student=await studentApplicationModel.findOneAndUpdate({_id:id},{$set:{}});        
-//     } catch (error) {
-//         return res.send({status:500,data:"Internal Server Error"});
-//     }
-// }
-// export const handleStudentApplicationStatus=async(req,res)=>{
-//     try {
-//         const {id}=req.params;
-//         const {status}=req.body;
-//         const result = await studentApplicationModel.findOneAndUpdate({_id:id},{$set:{status}});
-//         if(result)return res.send({status:200,data:"Student Application Updated"});
-//         return res.send({status:402,data:"Student Application Not Updated"});
-//     } catch (error) {
-//         return res.send({status:500,data:"Internal Server Error."});
-//     }
-// }
 export const addRoom=async(req,res)=>{
     try {
         const {room_no,total_beds,available_beds,status,block_id}=req.body;
@@ -300,11 +271,16 @@ try {
     const {id}=req.params;
     const cachedRoom=await redis.get(`room:${id}`);
     if(cachedRoom)return res.status(200).json({data:JSON.parse(cachedRoom)});
-    const room = await roomModel.findOne({_id:id}).populate(['block_id','amenities']);
+    const room = await roomModel.findOne({_id:id}).populate([
+        {path:"block_id",select:"block_no"},
+        {path:"occupants",select:"student_name student_email"}
+    ]);
+    console.log(room);
     if(!room)return res.sendStatus(204);
     await redis.setex(`room:${id}`,3600,JSON.stringify(room));
     return res.status(200).json({data:room});
 } catch (error) {
+    console.log(error);
     return res.sendStatus(500);
 }
 };
