@@ -56,18 +56,20 @@ export const isAuthorized=async(req,res,next)=>{
         return res.sendStatus(500);
     }
 };
-export const isAuthorizedStudentOrAdmin=async(req,res,next)=>{
+export const isAuthorizedStudent=async(req,res,next)=>{
     try {
         const token = req.headers?.authorization;
         if(token =="" || token==null || token==undefined)return res.sendStatus(403);
         const parsedToken=token.split("Bearer ")[1];
         const tokenPayload=checkToken(parsedToken);
-        if(tokenPayload.role == "STUDENT" || tokenPayload.role=="ADMIN"){
+        console.log("token payload ",tokenPayload);
+        if(tokenPayload.role == "STUDENT"){
             req.id=tokenPayload.id;
             return next();
         };
         return res.status(400).json({message:"Not Authorized."});
     } catch (error) {
+        console.log(error);
         return res.status(500).json({message:"Internal Server Error."});
     }
 }

@@ -23,6 +23,7 @@ export const approveStudentApplication=async(req,res)=>{
         student.status="approved";
         await student.save({session});
         await userModel.create([{
+            _id:student._id,
             email:student.student_email,password:password,phone:student.student_cellphone,username:student.student_name,role:"STUDENT"}],{session});
         await session.commitTransaction();
         await session.endSession();
@@ -172,7 +173,7 @@ export const assignRoom=async(req,res)=>{
     const {id}=req.params;
     const {room_id}=req.body;
     if(!room_id){
-        let status = await removeRoom(id)
+        let status = await removeRoom(id,room_id)
         return res.sendStatus(status);
     };
     const session = await startSession();
@@ -232,7 +233,7 @@ const removeRoom=async(id)=>{
         await session.abortTransaction();
         return 500;
     }finally{
-        let cursor = "0";   
+        let cursor = "0";
                 do {
             const reply = await redis.scan(cursor,'MATCH','student*','COUNT',100);
             cursor=reply[0];
@@ -241,6 +242,17 @@ const removeRoom=async(id)=>{
                 await redis.del(...keys);
             }
         } while (cursor!=="0");
+           let cursor2 = "0";
+        do{
+            const reply = await redis.scan(cursor2,'MATCH','rooms*','COUNT',100);
+            cursor2 = reply[0];
+            const keys = reply[1];
+            if(keys.length >0){
+                await redis.del(...keys);
+            }
+        }while(cursor2 !== "0");
+        const keys = await redis.keys("rooms*");
+        if(keys.length>0)await redis.del(keys);
         await session.endSession();
     };
 };
@@ -269,11 +281,11 @@ export const addRoom=async(req,res)=>{
 export const getRoom=async(req,res)=>{
 try {
     const {id}=req.params;
-    const cachedRoom=await redis.get(`room:${id}`);
+    const cachedRoom=await redis.get(`rooms:${id}`);
     if(cachedRoom)return res.status(200).json({data:JSON.parse(cachedRoom)});
     const room = await roomModel.findOne({_id:id}).populate([
         {path:"block_id",select:"block_no"},
-        {path:"occupants",select:"student_name student_email"}
+        {path:"occupants",select:"student_name student_email student_roll_no"}
     ]);
     console.log(room);
     if(!room)return res.sendStatus(204);

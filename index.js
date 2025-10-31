@@ -10,7 +10,7 @@ import reportRoute from "./routers/reportRoutes.js"
 import { schedule } from "node-cron";
 import { handleGenerateMontlyReport } from "./services/monthlyReportService.js";
 import rateLimit from "express-rate-limit";
-import { isAuthorized, isAuthorizedStudentOrAdmin } from "./services/authentication.service.js";
+import { isAuthorized, isAuthorizedStudent } from "./services/authentication.service.js";
 import authRoutes from "./routers/authRoutes.js";
 import notificationRoutes from "./routers/notificationRoutes.js";
 import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
@@ -64,8 +64,10 @@ app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
 app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
 
+// Common between admin and student
+
 // Student Routes
-app.use("/api/student",isAuthorizedStudentOrAdmin,studentRoutes);
+app.use("/api/student",isAuthorizedStudent,studentRoutes);
 
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");
