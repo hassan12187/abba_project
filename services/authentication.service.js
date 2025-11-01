@@ -6,10 +6,8 @@ export const Login=async(req,res)=>{
     try {
     const {email,password}=req.body;
     const userData=await userModel.findOne({email});
-    console.log(userData);
     if(!userData)return res.status(401).send("Invalid Credentials.");
     const isMatched=await bcrypt.compare(password,userData.password);
-    console.log(isMatched);
     if(!isMatched)return res.status(401).send("Invalid Credentials.");
     const accessToken=getAccessToken(userData);
     const refreshedToken=getRefreshedToken(userData._id);
@@ -62,7 +60,6 @@ export const isAuthorizedStudent=async(req,res,next)=>{
         if(token =="" || token==null || token==undefined)return res.sendStatus(403);
         const parsedToken=token.split("Bearer ")[1];
         const tokenPayload=checkToken(parsedToken);
-        console.log("token payload ",tokenPayload);
         if(tokenPayload.role == "STUDENT"){
             req.id=tokenPayload.id;
             return next();

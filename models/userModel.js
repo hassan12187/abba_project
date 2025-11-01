@@ -27,6 +27,9 @@ const userSchema=new Schema({
         required:[true,"Password is required."],
         minlength:[6,"Password must be atleast 6 Characters."]
     },
+    isFirstLogin:{
+        type:Boolean,
+    },
     status:{
         type:String,
         enum:["ACTIVE","DISCONTINUED"],
