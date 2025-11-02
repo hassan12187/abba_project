@@ -1,6 +1,7 @@
 import studentApplicationModel from "../../models/studentApplicationModel.js";
 import redis from "../..//services/Redis.js";
 import mongoose from "mongoose";
+import ComplainModel from "../../models/complaintModel.js";
 
 
 // Student Get Details
@@ -154,4 +155,33 @@ export const getStudentRoom=async(req,res)=>{
     } catch (error) {
         return res.sendStatus(500);
     }
-}
+};
+export const getComplaints=async(req,res)=>{
+    try {
+        const id = req.id;
+        const cachedData=await redis.get(`complaints:${id}`);
+        console.log(JSON.parse(cachedData));
+        if(cachedData)return res.status(200).json({data:JSON.parse(cachedData)});
+        const complaints=await ComplainModel.find({student_id:id}).populate("room_id");
+        if(complaints.length<=0)return res.sendStatus(204);
+        await redis.setex(`complaints:${id}`,3600,JSON.stringify(complaints));
+        console.log(complaints);
+        return res.status(200).json({data:complaints});
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+};
+export const addComplaint=async(req,res)=>{
+    try {
+        const id=req.id;
+        const {title,category,description,priority}=req.body;
+        const student=await studentApplicationModel.findOne({_id:id},"room_id");
+        const result = await ComplainModel.create({title,description,category,priority,room_id:student.room_id,student_id:student._id});
+        if(!result)return res.sendStatus(400);
+        await redis.del(`complaints:${id}`);
+        return res.sendStatus(200);
+    } catch (error) {
+        console.log(error);
+        return res.sendStatus(500);
+    }
+};

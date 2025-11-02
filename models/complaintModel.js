@@ -19,14 +19,19 @@ const complaintSchema=new Schema({
         type:String,
         required:true
     },
+    priority:{
+        type:String,
+        enum:["high","medium","low"],
+        default:"medium"
+    },
     category:{
         type:String,
-        enum:["Electrical", "Plumbing", "Cleaning", "Furniture", "Other"],
-        default:"Other"
+        enum:["electrical", "plumbing", "cleaning", "furniture", "other"],
+        default:"other"
     },
     status:{
         type:String,
-        enum:["Pending","Resolved","In Progress"],
+        enum:["Pending","Resolved","In Progress","Rejected"],
         default:"Pending"
     },
     assigned_to:{
