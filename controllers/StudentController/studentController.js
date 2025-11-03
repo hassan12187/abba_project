@@ -2,6 +2,8 @@ import studentApplicationModel from "../../models/studentApplicationModel.js";
 import redis from "../..//services/Redis.js";
 import mongoose from "mongoose";
 import ComplainModel from "../../models/complaintModel.js";
+import userModel from "../../models/userModel.js";
+import bcrypt from "bcrypt";
 
 
 // Student Get Details
@@ -138,6 +140,25 @@ export const getStudentRoom=async(req,res)=>{
                 }
             },
             {
+                $lookup:{
+                    from:"blocks",
+                    localField:"room.block_id",
+                    foreignField:"_id",
+                    as:"room.block",
+                    pipeline:[
+                        {$project:{
+                            block_no:1
+                        }}
+                    ]
+                }
+            },
+            {
+                $unwind:{
+                    path:"$room.block",
+                    preserveNullAndEmptyArrays:true
+                }
+            },
+            {
                 $project:{
                     // student_name:1,
                     // student_email:1,
@@ -145,7 +166,8 @@ export const getStudentRoom=async(req,res)=>{
                     // city:1,
                     room:{
                         room_no:1,
-                        occupants_info:1
+                        occupants_info:1,
+                        block:1
                     }
                 }
             }
@@ -153,6 +175,7 @@ export const getStudentRoom=async(req,res)=>{
         if(!room[0])return res.status(404).json({message:"No Room Details Found."});
         return res.status(200).json({data:room[0]});
     } catch (error) {
+        console.log(error);
         return res.sendStatus(500);
     }
 };
@@ -182,6 +205,22 @@ export const addComplaint=async(req,res)=>{
         return res.sendStatus(200);
     } catch (error) {
         console.log(error);
+        return res.sendStatus(500);
+    }
+};
+export const changePassword=async(req,res)=>{
+    try {
+        const id = req.id;
+        const {currentPassword,newPassword,confirmPassword}=req.body;
+        if(newPassword != confirmPassword)return res.status(400).json({message:"Passwords Not Matched."});
+        const student=await userModel.findOne({_id:id});
+        if(!student)return res.status(404).json({message:"No Student Record Found."});
+        const isMatched=await bcrypt.compare(currentPassword,student.password);
+        if(!isMatched)return res.status(400).json({message:"Incorrect Password."});
+        student.password=newPassword;
+        await student.save();
+        return res.sendStatus(200);
+    } catch (error) {
         return res.sendStatus(500);
     }
 };

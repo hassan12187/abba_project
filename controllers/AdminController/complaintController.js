@@ -12,9 +12,12 @@ export const getAllComplaints=async(req,res)=>{
         // };
         if(category)filterKey.category=category;
         if(status)filterKey.status=status;
-        const complaints = await ComplainModel.find(filterKey).skip(page*limit).limit();
+        const complaints = await ComplainModel.find(filterKey,"title category status room_id").skip(page*limit).limit().populate({
+            path:"room_id",
+            select:"room_no"
+        });
         if(complaints.length<=0)return res.sendStatus(204);
-        return res.status(200).send(complaints);
+        return res.status(200).json({data:complaints});
     } catch (error) {
         return res.sendStatus(500);
     }
