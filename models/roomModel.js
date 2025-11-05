@@ -4,6 +4,11 @@ const roomSchema=new Schema({
     room_no:{
         type:String
     },
+    room_type:{
+        type:String,
+        enum:["single","double","triple"],
+        default:"single"
+    },
     total_beds:{
         type:Number
     },

@@ -43,6 +43,7 @@ export const handleRequestPasswordChange=async(req,res)=>{
     try {
         const {email}=req.body;
         const user=await userModel.findOne({email});
+        console.log(user);
         if(!user)return res.status(400).send("If this email exists, a code has been sent");
         const code=Math.floor(100000 + Math.random() * 900000).toString();
         const salt = await bcrypt.genSalt(10);
@@ -58,9 +59,10 @@ export const handleRequestPasswordChange=async(req,res)=>{
 };
 export const verifyCode=async(req,res)=>{
     const {email,code}=req.body;
-    if(!email)return res.sendStatus(204);
+    try {
+         if(!email)return res.sendStatus(404);
     const user = await userModel.findOne({email});
-    if(!user)return res.sendStatus(403);
+    if(!user)return res.sendStatus(404);
     const isMatched = await bcrypt.compare(code,user.passwordResetCode);
     if(!isMatched || user.passwordResetExpires < Date.now())return res.sendStatus(403);
     const token = jwt.sign({id:user._id,email},process.env.TEMP_PASS_TOKEN,{
@@ -69,6 +71,10 @@ export const verifyCode=async(req,res)=>{
     user.passwordResetCode=null;
     await user.save();
     return res.status(200).json({token});
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+   
 };
 export const ChangePassword=async(req,res)=>{
     const {password,token}=req.body;
