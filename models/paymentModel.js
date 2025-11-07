@@ -3,16 +3,18 @@ const paymentSchema=new Schema({
 student_registration_no:{
     type:String
 },
-student_id:{
+student:{
     type:Schema.Types.ObjectId,
     ref:"student_application"
 },
-voucher_id:{
+invoices:[{
     type:Schema.Types.ObjectId,
-    ref:"FeeVoucher"
-},
-amount_paid:{
+    ref:"FeeInvoice",
+    required:true
+}],
+amount:{
     type:Number,
+    required:true
 },
 payment_method:{
     type:String,
@@ -24,11 +26,6 @@ payment_status:{
 },
 payment_date:{type:Date,default:Date.now,immutable:true},
 transaction_id:{type:String},
-date:{
-    type:Date,
-    default:Date.now,
-    immutable:true
-}
 },{timestamps:true});
 const paymentModel=model("payment",paymentSchema);
 export default paymentModel;

@@ -4,18 +4,18 @@ const roomSchema=new Schema({
     room_no:{
         type:String
     },
-    room_type:{
+    type:{
         type:String,
-        enum:["single","double","triple"],
-        default:"single"
+        enum:['Single Seater', 'Double Seater', 'Triple Seater'],
+        required:true
     },
-    total_beds:{
-        type:Number
-    },
-    floor:{
+    fees:{
         type:Number,
-        required:true,
-        default:1
+        required:true
+    },  
+    capacity:{
+        type:Number,
+        required:true
     },
     block_id:{
         type:Schema.Types.ObjectId,
