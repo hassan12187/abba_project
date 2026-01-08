@@ -25,6 +25,7 @@ import WebSocketService from "./services/socket.service.js";
 import "./services/agenda.js";  
 import "./queues/emailWorker.js";
 import helmet from "helmet";
+import { generateMonthlyFees } from "./services/FeeService.js";
 
 config();   
 const app=express();
@@ -72,6 +73,10 @@ app.use("/api/student",isAuthorizedStudent,studentRoutes);
 schedule('1 0 1 * *',async()=>{
 console.log("generating montly report");
 handleGenerateMontlyReport();
+});
+schedule("0 0 1 * *",async()=>{
+    const now = new Date();
+    await generateMonthlyFees(now.getFullYear(),now.getMonth()+1);
 });
 const server = createServer(app);
 export const io = new Server(server,{

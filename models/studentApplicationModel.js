@@ -89,6 +89,21 @@ const studentApplicationSchema=new Schema({
         default:Date.now,
         immutable:true
     },
+    messEnabled:{
+        type:Boolean,
+        default:false
+    },
+    hostelJoinDate:{
+        type:Date,
+        immutable:true
+    },
+    hostelLeaveDate:{
+        type:Date,
+        immutable:true
+    },
+    isActive:{
+        type:Boolean
+    },
     room_id:{
         type:Schema.Types.ObjectId,
         ref:"room"

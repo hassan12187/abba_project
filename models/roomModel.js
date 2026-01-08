@@ -47,7 +47,7 @@ const roomSchema=new Schema({
     }
 });
 roomSchema.virtual("available_beds").get(function(){
-    return this.total_beds-this.occupants.length;
+    return this.capacity-this.occupants.length;
 });
 const roomModel=model("room",roomSchema);
 export default roomModel;

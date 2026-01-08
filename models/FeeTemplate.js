@@ -26,9 +26,12 @@ frequency:{
     enum:["OneTime","Monthly","Quarterly","Yearly"],
     required:true
 },
+roomType:{
+  type:String  
+},
 category:{
     type:String,
-    enum:["Room","Mess","Deposit","Service"],
+    enum:["Room","Mess"],
     required:true
 },
 lineItems:[lineItemsScehma],

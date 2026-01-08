@@ -28,9 +28,6 @@ const feeInvoiceSchema=new Schema({
         required:true,
         unique:true
     },
-    room_fee:{
-        type:Number
-    },
    lineItems:[lineItemSchema],
     issueDate:{
         type:Date,
@@ -50,6 +47,20 @@ const feeInvoiceSchema=new Schema({
             ref:'Payment'
         }
     ],
+    billingMonth: {
+  type: String, // "2026-01"
+  required: true,
+  index: true
+},
+billingYear: {
+  type: Number,
+  required: true
+},
+generatedBy: {
+  type: String,
+  enum: ["AUTO", "MANUAL"],
+  default: "AUTO"
+},
     status:{
         type:String,
         enum:['Pending', 'Paid', 'PartiallyPaid', 'Overdue', 'Cancelled'],
@@ -64,6 +75,10 @@ const feeInvoiceSchema=new Schema({
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   });
+feeInvoiceSchema.index(
+  { student_id: 1, billingMonth: 1 },
+  { unique: true }
+);
 
 feeInvoiceSchema.virtual('balanceDue').get(function (){
     return this.totalAmount - this.totalPaid;
