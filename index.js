@@ -17,6 +17,7 @@ import hostelBlockRoutes from "./routers/hostelBlockRoutes.js";
 import settingsRoute from "./routers/settingsRoute.js";
 import maintenanceStaffRoutes from "./routers/maintenanceStaffRoutes.js";
 import complaintRoutes from "./routers/complaintRoutes.js";
+import feeInvoiceRoutes from "./routers/FeeInvoiceRoutes.js";
 import studentRoutes from "./routers/studentRoutes.js";
 import cookieParser from "cookie-parser";
 import {Server} from "socket.io";
@@ -64,6 +65,7 @@ app.use("/api/admin/block",hostelBlockRoutes);
 app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
 app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
+app.use("/api/admin/fee-invoice",feeInvoiceRoutes);
 
 // Common between admin and student
 

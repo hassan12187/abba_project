@@ -66,6 +66,10 @@ generatedBy: {
         enum:['Pending', 'Paid', 'PartiallyPaid', 'Overdue', 'Cancelled'],
         default:"Pending"
     },
+    isLocked: {
+  type: Boolean,
+  default: false
+},
     dueDate:{
         type:Date,
         required:true
