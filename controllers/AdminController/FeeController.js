@@ -1,5 +1,6 @@
 import FeeInvoiceModel from "../../models/FeeInvoice.js";
 import FeeTemplate from "../../models/FeeTemplate.js";
+import studentApplicationModel from "../../models/studentApplicationModel.js";
 import redis from "../../services/Redis.js";
 
 export const getAllFeeInvoice=async(req,res)=>{
@@ -9,9 +10,20 @@ export const getAllFeeInvoice=async(req,res)=>{
         return res.sendStatus(500);
     }
 };
+export const getStudent=async()=>{
+    try {
+        const {student_roll_no}=req.body;
+        const student = await studentApplicationModel.findOne({student_roll_no},'student_name room_id student_roll_no');
+        if(!student)return res.status(401).json({message:"Student Not Found."});
+        return res.status(200).json({data:student});
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+};
 export const addInvoice=async(req,res)=>{
 try {
-    const {student_id,room_id,billingMonth,totalAmount,}=req.body;
+    const {student_roll_no,room_no,billingMonth,feeTemplate,totalAmount}=req.body;
+    await studentApplicationModel.findOne({student_roll_no});
 } catch (error) {
     return res.sendStatus(500);
 }
@@ -22,8 +34,9 @@ try {
     if(redisCachedFeeTemplate){
         return res.status(200).send(JSON.parse(redisCachedFeeTemplate));
     }
-    const templates=await FeeTemplate.find({},'name');
+    const templates=await FeeTemplate.find({},'name frequency category roomType totalAmount');
     if(templates.length==0)return res.sendStatus(404);
+    await redis.set("templates",JSON.stringify(templates));
     return res.status(200).send(templates);
 } catch (error) {
     return res.sendStatus(500);
