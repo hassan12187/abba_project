@@ -10,12 +10,19 @@ export const getAllFeeInvoice=async(req,res)=>{
         return res.sendStatus(500);
     }
 };
-export const getStudent=async()=>{
+export const getSpecificStudent=async(req,res)=>{
     try {
-        const {student_roll_no}=req.body;
-        const student = await studentApplicationModel.findOne({student_roll_no},'student_name room_id student_roll_no');
-        if(!student)return res.status(401).json({message:"Student Not Found."});
-        return res.status(200).json({data:student});
+        const {q}=req.query;
+        const student = await studentApplicationModel.findOne({student_roll_no:q},'student_name room_id student_roll_no').populate("room_id","room_no");
+        if(!student)return res.status(404).json({message:"Student Not Found."});
+        const studentDto = {
+            student_id:student?._id,
+            student_name:student?.student_name,
+            student_roll_no:student?.student_roll_no,
+            room_id:student?.room_id,
+            room_no:student?.room_id?.room_no
+        };
+        return res.status(200).json(studentDto);
     } catch (error) {
         return res.sendStatus(500);
     }
