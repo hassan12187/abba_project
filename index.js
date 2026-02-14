@@ -65,7 +65,7 @@ app.use("/api/admin/block",hostelBlockRoutes);
 app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
 app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
-app.use("/api/admin/fee",feeRoutes);
+app.use("/api/admin/fee-invoice",feeRoutes);
 
 // Common between admin and student
 

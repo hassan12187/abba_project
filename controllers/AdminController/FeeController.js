@@ -1,11 +1,36 @@
 import FeeInvoiceModel from "../../models/FeeInvoice.js";
 import FeeTemplate from "../../models/FeeTemplate.js";
 import studentApplicationModel from "../../models/studentApplicationModel.js";
+import Counter from "../../models/Counter.js";
 import redis from "../../services/Redis.js";
 
-export const getAllFeeInvoice=async(req,res)=>{
+export const getFeeInvoice=async(req,res)=>{
     try {
         const allInvoices = await FeeInvoiceModel.find();
+    } catch (error) {
+        return res.sendStatus(500);
+    }
+};
+export const handleCreateInvoice=async(req,res)=>{
+    try {
+        const {student_id,billingMonth,dueDate,lineItems}=req.body;
+        const counter=await Counter.findOneAndUpdate(
+        { id:"invoice_id"},
+        {$inc:{seq:1}},
+        {new:true,upsert:true}
+    );
+        const currentYear=new Date().getFullYear();
+        const invoiceNumber= `INV-${currentYear}-${counter.seq.toString().padStart(4,'0')}`;
+        const newInvoice = await FeeInvoiceModel.create({
+            invoiceNumber,
+            student_id,
+            billingMonth,
+            dueDate,
+            lineItems,
+            totalAmount:lineItems.reduce((acc,item)=>acc+item.amount,0)
+        });
+        await newInvoice.save();
+        return res.status(201).json(newInvoice);
     } catch (error) {
         return res.sendStatus(500);
     }
@@ -24,6 +49,7 @@ export const getSpecificStudent=async(req,res)=>{
         };
         return res.status(200).json(studentDto);
     } catch (error) {
+        console.log(error);
         return res.sendStatus(500);
     }
 };

@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { getAllFeeInvoice,getSpecificStudent, addInvoice, getFeeTemplates } from "../controllers/adminController/FeeController.js";
+import { getFeeInvoice,getSpecificStudent, addInvoice, getFeeTemplates,handleCreateInvoice } from "../controllers/adminController/FeeController.js";
 
 const routes = Router();
-routes.get("/",getAllFeeInvoice);
+routes.get("/",getFeeInvoice);
+routes.post("/",handleCreateInvoice);
 routes.get('/templates',getFeeTemplates);
-routes.get('/student',getSpecificStudent);
 routes.post('/',addInvoice);
+routes.get('/student',getSpecificStudent);
 export default routes;

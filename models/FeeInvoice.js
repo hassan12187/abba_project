@@ -52,10 +52,6 @@ const feeInvoiceSchema=new Schema({
   required: true,
   index: true
 },
-billingYear: {
-  type: Number,
-  required: true
-},
 generatedBy: {
   type: String,
   enum: ["AUTO", "MANUAL"],
