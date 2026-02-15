@@ -6,7 +6,59 @@ import redis from "../../services/Redis.js";
 
 export const getFeeInvoice=async(req,res)=>{
     try {
-        const allInvoices = await FeeInvoiceModel.find();
+        const limit = parseInt(req.query.limit)||10;
+        const page = parseInt(req.query.page)||1;
+        const skip = (page-1)*limit;
+        const invoices = await FeeInvoiceModel.aggregate([
+            {
+                $lookup:{
+                    from:"student_applications",
+                    localField:"student_id",
+                    foreignField:"_id",
+                    as:"student"
+                }
+            },
+            {
+                $unwind:{
+                    path:"$student",
+                    preserveNullAndEmptyArrays:false
+                }
+            },
+            {
+                $lookup:{
+                    from:"rooms",
+                    localField:"room_id",
+                    foreignField:"_id",
+                    as:"room"
+                }
+            },
+            {
+                $unwind:{
+                    path:"$room",
+                    preserveNullAndEmptyArrays:true
+                },
+            },
+            {
+                $project:{
+                    invoiceNumber:1,
+                    totalAmount:1,
+                    totalPaid:1,
+                    balanceDue:1,
+                    billingMonth:1,
+                    status:1,
+                    dueDate:1,
+                    student_name:"$student.student_name",
+                    student_id:"$student._id",
+                    room_no:"$room.room_no",
+                    room_id:"$room._id",
+                    createdAt:1
+                }
+            },
+            {$sort:{createdAt:-1}},
+            {$skip:skip},
+            {$limit:limit}
+        ]);
+        return res.status(200).send(invoices);
     } catch (error) {
         return res.sendStatus(500);
     }

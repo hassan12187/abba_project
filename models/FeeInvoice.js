@@ -79,7 +79,6 @@ feeInvoiceSchema.index(
   { student_id: 1, billingMonth: 1 },
   { unique: true }
 );
-
 feeInvoiceSchema.virtual('balanceDue').get(function (){
     return this.totalAmount - this.totalPaid;
 });

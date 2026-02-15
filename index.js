@@ -56,7 +56,7 @@ app.use(limiter);
 app.use(authRoutes);
 // Admin Routes
 app.use("/api",complaintRoutes);
-app.use("/api/admin",isAuthorized);
+// app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
 app.use("/api/admin/expense",expenseRoute);
 app.use("/api/admin/report",reportRoute);
