@@ -65,7 +65,7 @@ export const getFeeInvoice=async(req,res)=>{
 };
 export const handleCreateInvoice=async(req,res)=>{
     try {
-        const {student_id,billingMonth,dueDate,lineItems}=req.body;
+        const {student_id,billingMonth,dueDate,lineItems,room_id}=req.body;
         const counter=await Counter.findOneAndUpdate(
         { id:"invoice_id"},
         {$inc:{seq:1}},
@@ -76,6 +76,7 @@ export const handleCreateInvoice=async(req,res)=>{
         const newInvoice = await FeeInvoiceModel.create({
             invoiceNumber,
             student_id,
+            room_id,
             billingMonth,
             dueDate,
             lineItems,
@@ -90,15 +91,16 @@ export const handleCreateInvoice=async(req,res)=>{
 export const getSpecificStudent=async(req,res)=>{
     try {
         const {q}=req.query;
-        const student = await studentApplicationModel.findOne({student_roll_no:q},'student_name room_id student_roll_no').populate("room_id","room_no");
+        const student = await studentApplicationModel.findOne({student_roll_no:q},'student_name student_roll_no').populate("room_id","room_no").lean();
         if(!student)return res.status(404).json({message:"Student Not Found."});
         const studentDto = {
             student_id:student?._id,
             student_name:student?.student_name,
             student_roll_no:student?.student_roll_no,
-            room_id:student?.room_id,
+            room_id:student?.room_id._id,
             room_no:student?.room_id?.room_no
         };
+        console.log(studentDto);
         return res.status(200).json(studentDto);
     } catch (error) {
         console.log(error);
