@@ -83,5 +83,14 @@ feeInvoiceSchema.virtual('balanceDue').get(function (){
     return this.totalAmount - this.totalPaid;
 });
 
+feeInvoiceSchema.pre("save",function(next){
+  if(this.totalPaid >= this.totalAmount){
+    this.status="Paid";
+  }else if(this.totalPaid>0){
+    this.status="Partially Paid"
+  };
+  next();
+});
+
 const FeeInvoiceModel=model("FeeInvoice",feeInvoiceSchema);
 export default FeeInvoiceModel;

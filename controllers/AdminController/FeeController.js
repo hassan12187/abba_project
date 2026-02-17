@@ -3,6 +3,8 @@ import FeeTemplate from "../../models/FeeTemplate.js";
 import studentApplicationModel from "../../models/studentApplicationModel.js";
 import Counter from "../../models/Counter.js";
 import redis from "../../services/Redis.js";
+import { startSession } from "mongoose";
+import Payment from "../../models/paymentModel.js";
 
 export const getFeeInvoice=async(req,res)=>{
     try {
@@ -107,13 +109,42 @@ export const getSpecificStudent=async(req,res)=>{
         return res.sendStatus(500);
     }
 };
-export const addInvoice=async(req,res)=>{
-try {
-    const {student_roll_no,room_no,billingMonth,feeTemplate,totalAmount}=req.body;
-    await studentApplicationModel.findOne({student_roll_no});
+export const addInvoicePayment=async(req,res)=>{
+    const session= await startSession();
+    try {
+        session.startTransaction();
+    const {invoiceId}=req.params;
+    const {amount,paymentMethod}=req.body;
+    const result = await FeeInvoiceModel.findById({_id:invoiceId}).session(session);
+    if(!result){
+        await session.abortTransaction();
+        return res.send(404).json({message:"Invoice not Found."});
+    };
+    if(result.totalPaid+amount > result.totalAmount){
+        await session.abortTransaction();
+        return res.status(400).json({message:"Payment exceeds balance."});
+    };
+    result.totalPaid+=amount;
+    const paymentRecord = new Payment({
+        student:result.student_id,
+        paymentMethod,
+        invoices:[
+            {invoiceId:result._id,amountApplied:amount}
+        ]
+    });
+    await paymentRecord.save({session});
+    await result.save({session});
+    await session.commitTransaction();
+    return res.status(200).json({message:"Payment Successful."});
 } catch (error) {
+    if(session.inTransaction()){
+        await session.abortTransaction();
+    }
+    console.log(error);
     return res.sendStatus(500);
-}
+}finally{
+    await session.endSession();
+};
 };
 export const getFeeTemplates=async(req,res)=>{
 try {

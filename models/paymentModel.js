@@ -1,31 +1,47 @@
 import {Schema,model} from "mongoose";
 const paymentSchema=new Schema({
-student_registration_no:{
-    type:String
-},
 student:{
     type:Schema.Types.ObjectId,
-    ref:"student_application"
+    ref:"student_application",
+    required:true
 },
 invoices:[{
-    type:Schema.Types.ObjectId,
-    ref:"FeeInvoice",
-    required:true
+    invoiceId:{
+        type:Schema.Types.ObjectId,
+        ref:"FeeInvoice",
+        required:true
+    },
+    amountApplied:{
+        type:Number,
+        required:true
+    }
 }],
-amount:{
+totalAmount:{
     type:Number,
-    required:true
 },
-payment_method:{
+paymentMethod:{
     type:String,
     enum:["cash","online"]
 },
-payment_status:{
+paymentStatus:{
     type:String,
     enum:["successfull","pending"]
 },
-payment_date:{type:Date,default:Date.now,immutable:true},
-transaction_id:{type:String},
+paymentDate:{type:Date,default:Date.now,immutable:true},
+transactionId:{type:String},
 },{timestamps:true});
-const paymentModel=model("payment",paymentSchema);
-export default paymentModel;
+
+paymentSchema.pre("save",function(next){
+    if(this.invoices && this.invoices.length>0){
+        const allocated = this.invoices.reduce((acc,item)=>acc + item.amountApplied,0);
+        // console.log(allocated);
+        // if(allocated !== this.totalAmount){
+        //     return next(new Error('Total payment amount must match sum of invoice allocations'));
+        // };
+        this.totalAmount=allocated;
+    }
+    next();
+});
+
+const Payment=model("payment",paymentSchema);
+export default Payment;
