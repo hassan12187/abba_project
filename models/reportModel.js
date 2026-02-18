@@ -2,8 +2,8 @@ import {Schema,model} from "mongoose";
 const reportSchema = new Schema({
     date:{
         type:Date,
-        default:Date.now,
-        immutable:true
+        immutable:true,
+        required:true
     },
     total_expenses:{
         type:Number,
@@ -13,12 +13,19 @@ const reportSchema = new Schema({
         type:Number,
         default:0
     },
-    total_students:{
+    net_balance:{
         type:Number,
         default:0
     }
+    // total_students:{
+    //     type:Number,
+    //     default:0
+    // }
 },{
     timestamps:true
 });
-const reportModel = model("report",reportSchema);
-export default reportModel;
+
+reportSchema.index({date:1},{unique:true});
+
+const Report = model("report",reportSchema);
+export default Report;

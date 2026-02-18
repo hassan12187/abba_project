@@ -56,7 +56,7 @@ app.use(limiter);
 app.use(authRoutes);
 // Admin Routes
 app.use("/api",complaintRoutes);
-// app.use("/api/admin",isAuthorized);
+app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
 app.use("/api/admin/expense",expenseRoute);
 app.use("/api/admin/report",reportRoute);
@@ -68,7 +68,11 @@ app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
 app.use("/api/admin/fee-invoice",feeRoutes);
 
 // Common between admin and student
-
+const now = new Date();
+const start = new Date(now.getFullYear(),now.getMonth(),1);
+const end = new Date(now.getFullYear(),now.getMonth()+1,-1);
+console.log(start.toLocaleDateString());
+console.log(end.toLocaleDateString());
 // Student Routes
 app.use("/api/student",isAuthorizedStudent,studentRoutes);
 

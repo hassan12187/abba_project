@@ -59,7 +59,7 @@ generatedBy: {
 },
     status:{
         type:String,
-        enum:['Pending', 'Paid', 'PartiallyPaid', 'Overdue', 'Cancelled'],
+        enum:['Pending', 'Paid', 'Partially Paid', 'Overdue', 'Cancelled'],
         default:"Pending"
     },
     isLocked: {

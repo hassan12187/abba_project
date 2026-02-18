@@ -3,14 +3,13 @@ import redis from "../../services/Redis.js";
 
 export const handleAddPayment=async(req,res)=>{
     try {
-        const {student_registration_no,amount,payment_method}=req.body;
-        const payment = new paymentModel({student_registration_no,amount,payment_method});
+        const {student_roll_no,totalAmount,paymentMethod}=req.body;
+        const payment = new paymentModel({student_roll_no,totalAmount,paymentMethod});
         const result = await payment.save();
         if(!result)return res.status(400).json({data:"Error Adding Payment."});
         let cursor="0";
         do {
             const reply = await redis.scan(cursor,'MATCH','payments*','COUNT',100);
-            console.log("reply ",reply);
             cursor=reply[0];
             const keys =reply[1];
             if(keys.length > 0){

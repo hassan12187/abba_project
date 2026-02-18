@@ -1,9 +1,15 @@
 import {Schema,model} from "mongoose";
 const paymentSchema=new Schema({
-student:{
-    type:Schema.Types.ObjectId,
+// student:{
+//     type:Schema.Types.ObjectId,
+//     ref:"student_application",
+//     required:true
+// },
+student_roll_no:{
+    type:Number,
     ref:"student_application",
-    required:true
+    required:true,
+    unique:true
 },
 invoices:[{
     invoiceId:{

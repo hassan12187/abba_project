@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { handleGetReport } from "../controllers/adminController/reportController.js";
+import { getHomeDashboardStats, getReportDashboardStats, handleGetReport } from "../controllers/adminController/reportController.js";
 const routes=Router();
-routes.get("/",handleGetReport);
+routes.get("/",getReportDashboardStats);
+routes.get('/home-dashboard',getHomeDashboardStats);
 export default routes;

@@ -35,6 +35,7 @@ export const RegisterApplication=async(req,res)=>{
         });
         return res.status(200).json({data:"Form submitted successfully."});
     } catch (error) {
+        console.log(error);
         return res.status(500).json({data:"Oops! A server error occurred."});
     }
 };

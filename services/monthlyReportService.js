@@ -15,5 +15,5 @@ export const handleGenerateMontlyReport=async()=>{
         {$group:{_id:null,total_payment:{$sum:'$amount'}}}
     ]);
     const result = new reportModel({total_expenses:total_expenses[0]?.total_expense,total_payments:total_payments[0]?.total_payment});
-   const saveReport = await result.save();
+   await result.save();
 };
