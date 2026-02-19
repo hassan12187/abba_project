@@ -51,21 +51,58 @@ const end = new Date(now.getFullYear(),now.getMonth()+1,-1);
 };
 
 export const getReportDashboardStats=async(req,res)=>{
+    const sixMonthAgo=new Date();
+    sixMonthAgo.setMonth(sixMonthAgo.getMonth()-6);
+    sixMonthAgo.setDate(1);
+    sixMonthAgo.setHours(0,0,0,0);
     try {
-        const [totalStudents,totalPayments,totalExpenses]=await Promise.all([
+        const [totalStudents,totalPayments,totalExpenses,sixMonthAgoStats]=await Promise.all([
             studentApplicationModel.countDocuments({status:{$in:["accepted","approved"]}}),
             Payment.aggregate([
                 {$group:{_id:null,total:{$sum:"$totalAmount"}}}
             ]),
             expenseModel.aggregate([
                 {$group:{_id:null,total:{$sum:"$amount"}}}
+            ]),
+            Report.aggregate([
+                {
+                    $match:{
+                        reportDate:{$gt:sixMonthAgo}
+                    }
+                },
+                {
+                    $group:{
+                        _id:{
+                            // year:{$year:"$reportDate"},
+                            month:{$month:"$reportDate"}
+                        },
+                        income:{$sum:"$total_payments"},
+                        expense:{$sum:"$total_expenses"}
+                    }
+                },
+                {
+                    $sort:{"_id.year":1,"_id.month":1}
+                }
             ])
         ]);
+        console.log(sixMonthAgoStats);
+        const formatedDate=sixMonthAgoStats.map(item=>{
+            const date = new Date(0,item._id.month-1,1);
+            const monthName=date.toLocaleDateString('default',{month:'short'});
+            return {
+                month: monthName,
+                Income:item.income,
+                Expense:item.expense,
+                profit:item.income-item.expense
+            }
+        });
+        console.log(formatedDate);
         return res.status(200).json({
             totalStudents,
             totalPayments:totalPayments[0]?.total||0,
             totalExpenses:totalExpenses[0]?.total||0,
-            netBalance:(totalPayments[0]?.total ||0) - (totalExpenses[0]?.total || 0)
+            netBalance:(totalPayments[0]?.total ||0) - (totalExpenses[0]?.total || 0),
+            sixMonthAgoData:formatedDate
         });
     } catch (error) {
         return res.sendStatus(500);
