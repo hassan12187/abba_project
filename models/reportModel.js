@@ -20,7 +20,11 @@ const reportSchema = new Schema({
     total_students:{
         type:Number,
         default:0
-    }
+    },
+    expense_breakdown:[{
+        category: { type: String, required: true }, // e.g., "Salary", "Utilities", "Rent"
+        amount: { type: Number, required: true, default: 0 }
+    }]
 },{
     timestamps:true
 });

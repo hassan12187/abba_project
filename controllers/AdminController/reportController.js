@@ -56,55 +56,83 @@ export const getReportDashboardStats=async(req,res)=>{
     sixMonthAgo.setDate(1);
     sixMonthAgo.setHours(0,0,0,0);
     try {
-        const [totalStudents,totalPayments,totalExpenses,sixMonthAgoStats]=await Promise.all([
-            studentApplicationModel.countDocuments({status:{$in:["accepted","approved"]}}),
-            Payment.aggregate([
-                {$group:{_id:null,total:{$sum:"$totalAmount"}}}
-            ]),
-            expenseModel.aggregate([
-                {$group:{_id:null,total:{$sum:"$amount"}}}
-            ]),
-            Report.aggregate([
-                {
-                    $match:{
-                        reportDate:{$gt:sixMonthAgo}
-                    }
-                },
-                {
-                    $group:{
-                        _id:{
-                            // year:{$year:"$reportDate"},
-                            month:{$month:"$reportDate"}
-                        },
-                        income:{$sum:"$total_payments"},
-                        expense:{$sum:"$total_expenses"}
-                    }
-                },
-                {
-                    $sort:{"_id.year":1,"_id.month":1}
-                }
-            ])
-        ]);
-        console.log(sixMonthAgoStats);
-        const formatedDate=sixMonthAgoStats.map(item=>{
-            const date = new Date(0,item._id.month-1,1);
-            const monthName=date.toLocaleDateString('default',{month:'short'});
-            return {
-                month: monthName,
-                Income:item.income,
-                Expense:item.expense,
-                profit:item.income-item.expense
-            }
-        });
-        console.log(formatedDate);
-        return res.status(200).json({
-            totalStudents,
-            totalPayments:totalPayments[0]?.total||0,
-            totalExpenses:totalExpenses[0]?.total||0,
-            netBalance:(totalPayments[0]?.total ||0) - (totalExpenses[0]?.total || 0),
-            sixMonthAgoData:formatedDate
-        });
+        const [
+      reportsList, 
+      currentStudentCount, 
+      recentPayments, 
+      recentExpenses
+    ] = await Promise.all([
+      // A. Get 6 months of reports for the charts
+  // A. Get 6 months of reports for the charts
+      Report.find({ reportDate: { $gte: sixMonthsAgo } }).sort({ reportDate: 1 }),
+      
+      // B. Get live total of currently enrolled students
+      studentApplicationModel.countDocuments({$or:[{status:"accepted"},{status:"approved"}]}), // Adjust query to match your Student model
+      
+      // C. Get the 5 most recent payments for the details list
+      Payment.find().sort({ createdAt: -1 }).limit(5),
+      
+      // D. Get the 5 most recent expenses for the details list
+      expenseModel.find().sort({ createdAt: -1 }).limit(5)
+    ]);
+    console.log(reportsList);
+        // const [totalStudents,totalPayments,totalExpenses,sixMonthAgoStats]=await Promise.all([
+        //     studentApplicationModel.countDocuments({status:{$in:["accepted","approved"]}}),
+        //     Payment.aggregate([
+        //         {$group:{_id:null,total:{$sum:"$totalAmount"}}}
+        //     ]),
+        //     expenseModel.aggregate([
+        //         {$group:{_id:null,total:{$sum:"$amount"}}}
+        //     ]),
+        //     Report.aggregate([
+        //         {
+        //             $match:{
+        //                 reportDate:{$gt:sixMonthAgo}
+        //             }
+        //         },
+        //         {
+        //             $group:{
+        //                 _id:{
+                            
+        //                     // year:{$year:"$reportDate"},
+        //                     month:{$month:"$reportDate"}
+        //                 },
+        //                 income:{$sum:"$total_payments"},
+        //                 expense:{$sum:"$total_expenses"}
+        //             }
+        //         },
+        //         {
+        //             $sort:{"_id.year":1,"_id.month":1}
+        //         }
+        //     ])
+        // ]);
+        // console.log(sixMonthAgoStats);
+        // const incomes=[];
+        // const expenses=[];
+        // const formatedMonths=sixMonthAgoStats.map(item=>{
+        //     const date = new Date(0,item._id.month-1,1);
+        //     const monthName=date.toLocaleDateString('default',{month:'short'});
+        //     incomes.push(item.income);
+        //     expenses.push(item.expense);
+        //     return monthName;
+        // });
+        // console.log(formatedMonths);
+        // console.log(expenses);
+        // console.log(incomes);
+        // return res.status(200).json({
+        //     totalStudents,
+        //     totalPayments:totalPayments[0]?.total||0,
+        //     totalExpenses:totalExpenses[0]?.total||0,
+        //     netBalance:(totalPayments[0]?.total ||0) - (totalExpenses[0]?.total || 0),
+        //     sixMonthAgoData:{
+        //         months:formatedMonths,
+        //         incomes,
+        //         expenses
+        //     }
+        // });
+        return res.sendStatus(200);
     } catch (error) {
+        console.log(error);
         return res.sendStatus(500);
     }
 };
