@@ -64,7 +64,25 @@ export const getReportDashboardStats=async(req,res)=>{
     ] = await Promise.all([
       // A. Get 6 months of reports for the charts
   // A. Get 6 months of reports for the charts
-      Report.find({ reportDate: { $gte: sixMonthsAgo } }).sort({ reportDate: 1 }),
+    //   Report.find({ reportDate: { $gte: sixMonthAgo } }).sort({ reportDate: 1 }),
+    Report.aggregate([
+        {$match:{reportDate:{$gt:sixMonthAgo}}},
+        {
+            $group:{
+                _id:{
+                    month:{
+                        $month:"$reportDate"},
+                        year:{$year:"$reportDate"}
+                },
+                income:{$sum:"$total_payments"},
+                expense:{$sum:"$total_expenses"},
+                daily_breakdowns:{$push:"$expense_breakdown"}
+            }
+        },
+        {
+            $sort:{"_id.year":1,"_id.month":1}
+        }
+    ]),
       
       // B. Get live total of currently enrolled students
       studentApplicationModel.countDocuments({$or:[{status:"accepted"},{status:"approved"}]}), // Adjust query to match your Student model
@@ -75,62 +93,46 @@ export const getReportDashboardStats=async(req,res)=>{
       // D. Get the 5 most recent expenses for the details list
       expenseModel.find().sort({ createdAt: -1 }).limit(5)
     ]);
-    console.log(reportsList);
-        // const [totalStudents,totalPayments,totalExpenses,sixMonthAgoStats]=await Promise.all([
-        //     studentApplicationModel.countDocuments({status:{$in:["accepted","approved"]}}),
-        //     Payment.aggregate([
-        //         {$group:{_id:null,total:{$sum:"$totalAmount"}}}
-        //     ]),
-        //     expenseModel.aggregate([
-        //         {$group:{_id:null,total:{$sum:"$amount"}}}
-        //     ]),
-        //     Report.aggregate([
-        //         {
-        //             $match:{
-        //                 reportDate:{$gt:sixMonthAgo}
-        //             }
-        //         },
-        //         {
-        //             $group:{
-        //                 _id:{
-                            
-        //                     // year:{$year:"$reportDate"},
-        //                     month:{$month:"$reportDate"}
-        //                 },
-        //                 income:{$sum:"$total_payments"},
-        //                 expense:{$sum:"$total_expenses"}
-        //             }
-        //         },
-        //         {
-        //             $sort:{"_id.year":1,"_id.month":1}
-        //         }
-        //     ])
-        // ]);
-        // console.log(sixMonthAgoStats);
-        // const incomes=[];
-        // const expenses=[];
-        // const formatedMonths=sixMonthAgoStats.map(item=>{
-        //     const date = new Date(0,item._id.month-1,1);
-        //     const monthName=date.toLocaleDateString('default',{month:'short'});
-        //     incomes.push(item.income);
-        //     expenses.push(item.expense);
-        //     return monthName;
-        // });
-        // console.log(formatedMonths);
-        // console.log(expenses);
-        // console.log(incomes);
-        // return res.status(200).json({
-        //     totalStudents,
-        //     totalPayments:totalPayments[0]?.total||0,
-        //     totalExpenses:totalExpenses[0]?.total||0,
-        //     netBalance:(totalPayments[0]?.total ||0) - (totalExpenses[0]?.total || 0),
-        //     sixMonthAgoData:{
-        //         months:formatedMonths,
-        //         incomes,
-        //         expenses
-        //     }
-        // });
-        return res.sendStatus(200);
+    let totalIncomePeriod=0;
+    let totalExpensePeriod=0;
+    const categoryTotals={};
+        const trendData=reportsList.map(monthData=>{
+            totalIncomePeriod+=monthData.income;
+            totalExpensePeriod+=monthData.expense;
+
+            monthData.daily_breakdowns.flat().forEach(item=>{
+                categoryTotals[item.category]=(categoryTotals[item.category] || 0) +item.amount ;
+            });
+            const date = new Date(monthData._id.year, monthData._id.month - 1, 1);
+      const monthName = date.toLocaleString('default', { month: 'short' });
+      return {
+        name:`${monthName} ${monthData._id.year}`,
+        Income:monthData.income,
+        Expense:monthData.expense,
+        profit:monthData.income-monthData.expense
+      };
+        });
+        
+        const pieChartCategoryData=Object.keys(categoryTotals).map(key=>({
+                category:key,
+                amount:categoryTotals[key]
+        }));
+        console.log(pieChartCategoryData)
+        return res.status(200).json({
+            summaryCard:{
+                total_enrolled_students:currentStudentCount,
+                total_payments_period:totalIncomePeriod,
+                total_expenses_period:totalExpensePeriod
+            },
+            charts:{
+                trendChart:trendData,
+                expensePieChart:pieChartCategoryData
+            },
+            recentActivity:{
+                payments:recentPayments,
+                expenses:recentExpenses,
+            }
+        });
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);

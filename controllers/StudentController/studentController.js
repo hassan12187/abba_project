@@ -69,7 +69,8 @@ export const getStudentDetails=async(req,res)=>{
                     cnic_no:1,
                     date_of_birth:1,
                     gender:1,
-                    room:1,
+                    room_no:"$room.room_no",
+                    room_id:"$room._id",
                     complaints:1,
                     // dob:date_of_birth
                 }
@@ -88,7 +89,8 @@ export const getStudentDetails=async(req,res)=>{
         //     dob:new Date(student.date_of_birth).toLocaleDateString(),
         //     gender:student.gender
         // };
-        return res.status(200).json({data:student[0]});
+        console.log(student);
+        return res.status(200).send(student[0]);
     } catch (error) {
         console.log("inside student ",error);
         return res.sendStatus(500);

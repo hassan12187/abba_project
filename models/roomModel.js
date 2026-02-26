@@ -7,15 +7,18 @@ const roomSchema=new Schema({
     type:{
         type:String,
         enum:['Single Seater', 'Double Seater', 'Triple Seater'],
-        required:true
+        required:true,
+        default:"Single Seater"
     },
     fees:{
         type:Number,
-        required:true
+        required:true,
+        default:0
     },  
     capacity:{
         type:Number,
-        required:true
+        required:true,
+        default:4
     },
     block_id:{
         type:Schema.Types.ObjectId,

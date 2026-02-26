@@ -7,7 +7,6 @@ import generatePassword from "../../services/generatePassword.js";
 import userModel from "../../models/userModel.js";
 
 export const approveStudentApplication=async(req,res)=>{
-    console.log("approving student application");
     const session = await startSession();
     session.startTransaction();
     try {
@@ -37,7 +36,6 @@ export const approveStudentApplication=async(req,res)=>{
 };
 
 export const getStudent=async(req,res)=>{
-    console.log("me toh agya abba");
     try {
         const {id}=req.params;
         const studentCached=await redis.get(`student:${id}`);
