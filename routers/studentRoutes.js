@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { getStudentDetails,getRoomMates,getStudentRoom,getComplaints,addComplaint,changePassword } from "../controllers/studentController/studentController.js";
+import { getStudentDashboardDetails,getFees,getRoomMates,getStudentRoom,getComplaints,addComplaint,changePassword } from "../controllers/studentController/studentController.js";
 const routes = Router();
-routes.get("/details",getStudentDetails);
+routes.get("/dashboard-details",getStudentDashboardDetails);
 routes.get('/room-mates',getRoomMates);
 routes.get('/room',getStudentRoom);
 routes.get('/complaints',getComplaints);
+routes.get('/fees',getFees);
 routes.post("/complaint",addComplaint);
 routes.patch("/change-password",changePassword);
 export default routes;

@@ -174,11 +174,14 @@ export const assignRoom=async(req,res)=>{
         let status = await removeRoom(id,room_id)
         return res.sendStatus(status);
     };
+    const now = new Date();
+    const hostelJoinDate=new Date(now);
+    const hostelLeaveDate=new Date(hostelJoinDate.getFullYear()+2,hostelJoinDate.getMonth(),hostelJoinDate.getDate());
     const session = await startSession();
     session.startTransaction();
     try {
 
-            await studentApplicationModel.findOneAndUpdate({_id:id},{$set:{room_id:room_id}},{session});
+            await studentApplicationModel.findOneAndUpdate({_id:id},{$set:{room_id:room_id,hostelJoinDate:hostelJoinDate,hostelLeaveDate:hostelLeaveDate}},{session});
             const room = await roomModel.findOne({_id:room_id}).session(session);
             if(!room || room.available_beds<=0){
                 console.log("condition true");

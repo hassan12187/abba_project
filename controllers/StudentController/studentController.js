@@ -4,13 +4,15 @@ import mongoose from "mongoose";
 import ComplainModel from "../../models/complaintModel.js";
 import userModel from "../../models/userModel.js";
 import bcrypt from "bcrypt";
+import FeeInvoiceModel from "../../models/FeeInvoice.js";
 
 
 // Student Get Details
-export const getStudentDetails=async(req,res)=>{
+export const getStudentDashboardDetails=async(req,res)=>{
     try {
         const id = req.id;
-        const student=await studentApplicationModel.aggregate([
+        const [student,fee]=await Promise.all([
+   studentApplicationModel.aggregate([
             {$match:{_id:new mongoose.Types.ObjectId(id)}},
             {
                 $lookup:{
@@ -59,7 +61,6 @@ export const getStudentDetails=async(req,res)=>{
             },
             {
                 $project:{
-                    _id:1,
                     student_name:1,
                     student_email:1,
                     student_roll_no:1,
@@ -72,25 +73,16 @@ export const getStudentDetails=async(req,res)=>{
                     room_no:"$room.room_no",
                     room_id:"$room._id",
                     complaints:1,
-                    // dob:date_of_birth
                 }
             }
+        ]),
+        FeeInvoiceModel.findOne({student_id:id},'dueDate totalPaid totalAmount').lean({virtuals:true})
         ]);
+     
         if(!student)return res.status(404).json({message:"No Student Found."});
-        // const dataModel={
-        //     id:student._id,
-        //     name:student.student_name,
-        //     email:student.student_email,
-        //     phone_no:student.student_cellphone,
-        //     current_address:student.postal_address,
-        //     permanent_address:student.permanent_address,
-        //     room:student.room_id,
-        //     cnic:student.cnic_no,
-        //     dob:new Date(student.date_of_birth).toLocaleDateString(),
-        //     gender:student.gender
-        // };
-        console.log(student);
-        return res.status(200).send(student[0]);
+        fee.balanceDue=fee.totalAmount - fee.totalPaid;
+        fee.feeId=fee._id;
+        return res.status(200).send({...fee,dueDate:fee.dueDate.toLocaleDateString(),...student[0]});
     } catch (error) {
         console.log("inside student ",error);
         return res.sendStatus(500);
@@ -116,11 +108,11 @@ export const getStudentRoom=async(req,res)=>{
                     as:"room"
                 }
             },
-            {$unwind:{path:"$room",preserveNullAndEmptyArrays:true}},
+            {$unwind:{path:"$room",preserveNullAndEmptyArrays:false}},
             {
                 $lookup:{
                     from:"student_applications",
-                    let:{occupantIds:"$room.occupants",selfId:"$_id"},
+                    let:{occupantIds:"$room?.occupants",selfId:"$_id"},
                     pipeline:[
                         {$match:{
                             $expr:{
@@ -128,7 +120,6 @@ export const getStudentRoom=async(req,res)=>{
                                     {$in:["$_id","$$occupantIds"]},
                                     {$ne:["$_id","$$selfId"]}
                                 ]
-                                // $in:["$_id","$$occupantIds"]
                             }
                         }},
                         {$project:{
@@ -173,7 +164,8 @@ export const getStudentRoom=async(req,res)=>{
                     }
                 }
             }
-        ])
+        ]);
+        console.log(room);
         if(!room[0])return res.status(404).json({message:"No Room Details Found."});
         return res.status(200).json({data:room[0]});
     } catch (error) {
@@ -223,6 +215,39 @@ export const changePassword=async(req,res)=>{
         await student.save();
         return res.sendStatus(200);
     } catch (error) {
+        return res.sendStatus(500);
+    }
+};
+
+export const getFees=async(req,res)=>{
+    try {
+        const id = req.id;
+        const [result,totalFee]=await Promise.all([
+            await studentApplicationModel.findById(id,"hostelJoinDate hostelLeaveDate").populate({
+            path:"room_id",
+            select:"fees"
+        }).lean(),
+        await FeeInvoiceModel.aggregate([
+            {$match:{student_id:new mongoose.Types.ObjectId(id)}},
+            {
+                $group:{
+                    _id:null,
+                    totalPaid:{$sum:"$totalPaid"}
+                }
+            }
+        ])
+        ])
+        if(!result)return res.sendStatus(404);
+        console.log(result);
+        console.log(totalFee);
+        const {hostelJoinDate,hostelLeaveDate,room_id}=result;
+        const joinTotalMonths=(hostelJoinDate.getFullYear()*12) + hostelJoinDate.getMonth();
+        const leaveTotalMonths=(hostelLeaveDate.getFullYear()*12)+hostelLeaveDate.getMonth();
+        let monthDif = leaveTotalMonths-joinTotalMonths;
+        let totalAmount=(room_id.fees*monthDif);
+        return res.status(200).json({totalAmount,totalPaid:totalFee[0].totalPaid,balanceDue:(totalAmount-totalFee[0].totalPaid),progress:(totalAmount/totalFee[0].totalPaid)*100});
+    } catch (error) {
+        console.log(error);
         return res.sendStatus(500);
     }
 };

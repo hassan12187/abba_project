@@ -95,11 +95,9 @@ const studentApplicationSchema=new Schema({
     },
     hostelJoinDate:{
         type:Date,
-        immutable:true
     },
     hostelLeaveDate:{
         type:Date,
-        immutable:true
     },
     isActive:{
         type:Boolean
