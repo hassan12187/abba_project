@@ -19,6 +19,7 @@ import maintenanceStaffRoutes from "./routers/maintenanceStaffRoutes.js";
 import complaintRoutes from "./routers/complaintRoutes.js";
 import feeRoutes from "./routers/FeeInvoiceRoutes.js";
 import studentRoutes from "./routers/studentRoutes.js";
+import messRoutes from "./routers/messRoutes.js";
 import cookieParser from "cookie-parser";
 import {Server} from "socket.io";
 import {createServer} from "http";
@@ -56,7 +57,7 @@ app.use(limiter);
 app.use(authRoutes);
 // Admin Routes
 app.use("/api",complaintRoutes);
-app.use("/api/admin",isAuthorized);
+// app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
 app.use("/api/admin/expense",expenseRoute);
 app.use("/api/admin/report",reportRoute);
@@ -66,6 +67,7 @@ app.use("/api/admin/settings",settingsRoute);
 app.use("/api/notification",notificationRoutes);
 app.use("/api/admin/maintenance-staff",maintenanceStaffRoutes);
 app.use("/api/admin/fee-invoice",feeRoutes);
+app.use("/api/admin/mess-menu",messRoutes);
 
 // Common between admin and student
 const now = new Date();

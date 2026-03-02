@@ -238,8 +238,6 @@ export const getFees=async(req,res)=>{
         ])
         ])
         if(!result)return res.sendStatus(404);
-        console.log(result);
-        console.log(totalFee);
         const {hostelJoinDate,hostelLeaveDate,room_id}=result;
         const joinTotalMonths=(hostelJoinDate.getFullYear()*12) + hostelJoinDate.getMonth();
         const leaveTotalMonths=(hostelLeaveDate.getFullYear()*12)+hostelLeaveDate.getMonth();
