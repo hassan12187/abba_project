@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { getStudentDashboardDetails,getFees,getRoomMates,getStudentRoom,getComplaints,addComplaint,changePassword } from "../controllers/StudentController/studentController.js";
+import { getStudentMessDetails } from "../controllers/adminController/messController.js";
 const routes = Router();
 routes.get("/dashboard-details",getStudentDashboardDetails);
 routes.get('/room-mates',getRoomMates);
 routes.get('/room',getStudentRoom);
 routes.get('/complaints',getComplaints);
 routes.get('/fees',getFees);
+routes.get("/mess-menu",getStudentMessDetails);
 routes.post("/complaint",addComplaint);
 routes.patch("/change-password",changePassword);
 export default routes;

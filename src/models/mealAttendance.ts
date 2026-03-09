@@ -1,6 +1,12 @@
 import {Schema,model} from "mongoose";
 
 const mealAttendanceSchema=new Schema({
+    student:{
+        type:Schema.Types.ObjectId,
+        ref:"student_appication",
+        required:true,
+        index:true
+    },
     date:{
         type:Date,
         required:true
@@ -10,16 +16,17 @@ const mealAttendanceSchema=new Schema({
         enum:["Breakfast","Lunch","Dinner"],
         required:true
     },
-    studentsAttended:[{
-        type:Schema.Types.ObjectId,
-        ref:"student_application"
-    }],
-    totalPlatesServed:{
-        type:Number,
-        default:0
+    status:{
+        type:String,
+        enum:["Present","Absent","Leave"],
+        default:"Absent"
     }
+    // totalPlatesServed:{
+    //     type:Number,
+    //     default:0
+    // }
 },{timestamps:true});
 
-mealAttendanceSchema.index({date:1,mealType:1},{unique:true});
+mealAttendanceSchema.index({student:1,date:1,mealType:1},{unique:true});
 
-export default model("MealAttendance",mealAttendanceSchema);
+export default model("AttendanceRecord",mealAttendanceSchema);

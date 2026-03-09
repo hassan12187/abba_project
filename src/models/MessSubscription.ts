@@ -1,6 +1,6 @@
 import {Schema,model} from "mongoose";
 
-const messSubscriptionSchema=new Schema=({
+const messSubscriptionSchema=new Schema({
     student:{
         type:Schema.Types.ObjectId,
         ref:"student_application",
@@ -9,7 +9,7 @@ const messSubscriptionSchema=new Schema=({
     },
     planType:{
         type:String,
-        enum:["Monthly","Semester","Pay-Per-Meal"],
+        enum:["Monthly","Semester","Pay_Per_Meal"],
         default:"Monthly"
     },
     status:{
