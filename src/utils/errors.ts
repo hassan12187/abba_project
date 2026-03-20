@@ -1,4 +1,7 @@
 export class HttpError extends Error {
+  static locked(arg0: string) {
+    throw new Error("Method not implemented.");
+  }
   public readonly statusCode: number;
   public readonly isOperational: boolean;
 

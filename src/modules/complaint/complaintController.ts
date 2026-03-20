@@ -1,5 +1,5 @@
 import { startSession } from "mongoose";
-import ComplainModel from "./complaintModel.js";
+import ComplainModel from "./complaint.model.js";
 import MaintenanceModel from "../../models/Maintenance.js";
 import {type Request,type Response} from "express";
 

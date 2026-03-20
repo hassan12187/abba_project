@@ -103,7 +103,7 @@ export const MessSubscriptionService = {
 
     const [data, total] = await Promise.all([
       MessSubscription.find(query)
-        .populate("student", "name email rollNo")
+        .populate("student", "student_name student_email student_roll_no")
         .sort(sort)
         .skip(skip)
         .limit(limit)
@@ -129,7 +129,7 @@ export const MessSubscriptionService = {
    */
   async getById(id: string): Promise<IMessSubscription> {
     const sub = await MessSubscription.findById(id)
-      .populate("student", "name email rollNo")
+      .populate("student", "student_name student_email student_roll_no")
       .lean()
     if (!sub) throw HttpError.notFound(`Subscription with id '${id}' not found.`)
     return sub as IMessSubscription
@@ -137,7 +137,7 @@ export const MessSubscriptionService = {
 
   async getByStudentId(studentId: string): Promise<IMessSubscription> {
     const sub = await MessSubscription.findOne({ student: studentId })
-      .populate("student", "name email rollNo")
+      .populate("student", "student_name student_email student_roll_no")
       .lean()
     if (!sub) throw HttpError.notFound(`No subscription found for student '${studentId}'.`)
     return sub as IMessSubscription
@@ -184,7 +184,7 @@ export const MessSubscriptionService = {
     const subs = await MessSubscription.find({
       status:     "Active",
       validUntil: { $gte: now, $lte: threshold },
-    }).populate("student", "name email rollNo").lean()
+    }).populate("student", "student_name student_email student_roll_no").lean()
 
     await setCache(cacheKey, subs, TTL.expiringSoon)
     return subs as IMessSubscription[]
@@ -215,7 +215,7 @@ export const MessSubscriptionService = {
 
     const updated = await MessSubscription.findByIdAndUpdate(
       id, { $set: dto }, { new: true, runValidators: true }
-    ).populate("student", "name email rollNo").lean()
+    ).populate("student", "student_name student_email student_roll_no").lean()
 
     if (!updated) throw HttpError.notFound(`Subscription with id '${id}' not found.`)
 

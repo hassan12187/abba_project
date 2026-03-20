@@ -1,7 +1,7 @@
 import { type Request, type Response } from "express";
 import expenseModel from "../../modules/expense/expenseModel.js";
 import Payment from "../../modules/payment/payment.model.js";
-import Report from "../../models/reportModel.js";
+import Report from "../../modules/reports/reportModel.js";
 import roomModel from "../../modules/hostel/room.model.js";
 import studentApplicationModel from "../../modules/student.application/studentApplicationModel.js";
 

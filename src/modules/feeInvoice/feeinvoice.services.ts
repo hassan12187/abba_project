@@ -1,10 +1,10 @@
 import { startSession, SortOrder } from "mongoose"
+import Payment                     from "../payment/payment.model.js"
 import FeeInvoiceModel             from "./FeeInvoice.js"
 import FeeTemplate                 from "../../models/FeeTemplate.js"
 import studentApplicationModel     from "../student.application/studentApplicationModel.js"
 import Counter                     from "../../models/Counter.js"
 import redis                       from "../../services/Redis.js"
-import Payment                     from "../payment/payment.model.js"
 import {
   IFeeInvoice,
   InvoiceListItem,

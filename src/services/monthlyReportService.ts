@@ -1,6 +1,6 @@
 import expenseModel from "../modules/expense/expenseModel.js";
 import paymentModel from "../modules/payment/payment.model.js";
-import reportModel from "../models/reportModel.js";
+import reportModel from "../modules/reports/reportModel.js";
 
 export const handleGenerateMontlyReport=async()=>{
        const now = new Date();

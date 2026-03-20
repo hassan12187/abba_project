@@ -4,9 +4,10 @@ import cors from "cors";
 import adminRoute from "./routers/adminRoutes.js";
 import staticRoutes from "./routers/staticRoutes.js";
 import connectDB from "./connection.js";
-import expenseRoute from "./modules/expense/expenseRoutes.js";
-import paymentRoute from "./modules/payment/paymentRoutes.js"
-import reportRoute from "./routers/reportRoutes.js"
+import feeRoutes from "./modules/feeInvoice/feeinvoice.routes.js";
+import {expenseRouter} from "./modules/expense/expenseRoutes.js";
+import {paymentRouter} from "./modules/payment/payment.routes.js"
+import {reportRouter} from "./modules/reports/report.routes.js"
 import { schedule } from "node-cron";
 import { handleGenerateMontlyReport } from "./services/monthlyReportService.js";
 import rateLimit from "express-rate-limit";
@@ -19,8 +20,7 @@ import {blockRouter} from "./modules/hostel/hostel.routes.js";
 import {roomRouter} from "./modules/hostel/hostel.routes.js";
 import settingsRoute from "./routers/settingsRoute.js";
 import maintenanceStaffRoutes from "./routers/maintenanceStaffRoutes.js";
-import complaintRoutes from "./modules/complaint/complaintRoutes.js";
-import feeRoutes from "./modules/feeInvoice/feeinvoice.routes.js";
+import {complaintRouter} from "./modules/complaint/complaint.routes.js";
 import applicationRoute from "./modules/student.application/studentapplication.routes.js";
 import studentRoutes from "./routers/studentRoutes.js";
 import messRoutes from "./modules/messSubscription/messSubscription.routes.js";
@@ -34,7 +34,7 @@ import "./queues/emailWorker.js";
 import helmet from "helmet";
 import { generateMonthlyFees } from "./services/FeeService.js";
 import {globalErrorHandler} from "./middleware/error.middleware.js";
-import "./modules/payment/payment.model.js";
+// import "./modules/payment/payment.model.js";
 
 const app=express();
 const allowedOrigins=[process.env.ADMIN_FRONTEND_ORIGIN,process.env.STUDENT_PORTAL_FRONTEND_ORIGIN];
@@ -62,13 +62,13 @@ app.use(limiter);
         
 app.use(authRoutes);
 // Admin Routes
-app.use("/api",complaintRoutes);
 // app.use("/api/admin",isAuthorized);
 app.use("/api/admin",adminRoute);
+app.use("/api/admin/complaints",complaintRouter);
 app.use("/api/admin/applications",applicationRoute);
-app.use("/api/admin/expense",expenseRoute);
-app.use("/api/admin/report",reportRoute);
-app.use("/api/admin/payment",paymentRoute);
+app.use("/api/admin/expenses",expenseRouter);
+app.use("/api/admin/report",reportRouter);
+app.use("/api/admin/payments",paymentRouter);
 app.use("/api/admin/blocks",blockRouter);
 app.use("/api/admin/rooms",roomRouter);
 app.use("/api/admin/settings",settingsRoute);

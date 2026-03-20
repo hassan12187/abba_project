@@ -91,7 +91,7 @@ export const RoomService = {
       .populate("block_id",           "block_no status description")
       .populate("occupants",          "student_name student_roll_no student_email status")
       .populate("amenities",          "name description")
-      .populate("maintenance_record", "title status date")
+      // .populate("maintenance_record", "title status date")
       .lean({ virtuals: true })
 
     if (!room) throw HttpError.notFound(`Room with id '${id}' not found.`)

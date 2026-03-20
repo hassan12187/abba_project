@@ -48,7 +48,7 @@ const feeInvoiceSchema=new Schema({
     payments:[
         {
             type:Schema.Types.ObjectId,
-            ref:'Payment'
+            ref:'payment'
         }
     ],
     billingMonth: {

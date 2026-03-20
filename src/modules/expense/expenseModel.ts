@@ -1,22 +1,54 @@
-import {model,Schema} from "mongoose";
-const expenseSchema=new Schema({
-    expense_type:{
-        type:String,
-        enum:["salary","asset","normal expense"],
-        default:"salary"
+import { Schema, model } from "mongoose"
+
+export type ExpenseCategory =
+  | "Salary"
+  | "Utilities"
+  | "Maintenance"
+  | "Food"
+  | "Rent"
+  | "Equipment"
+  | "Miscellaneous"
+
+const expenseSchema = new Schema(
+  {
+    description: {
+      type:     String,
+      required: [true, "Description is required"],
+      trim:     true,
+      maxlength: 500,
     },
-    description:{
-        type:String
+    amount: {
+      type:     Number,
+      required: [true, "Amount is required"],
+      min:      [0, "Amount cannot be negative"],
     },
-    amount:{
-        type:Number,
-        default:0
+    category: {
+      type:    String,
+      enum:    ["Salary","Utilities","Maintenance","Food","Rent","Equipment","Miscellaneous"],
+      default: "Miscellaneous",
+      required: true,
     },
-    date:{
-        type:Date,
-        default:Date.now,
-        immutable:true
-    }
-});
-const expenseModel=model("expense",expenseSchema);
-export default expenseModel;
+    date: {
+      type:     Date,
+      required: [true, "Date is required"],
+      default:  Date.now,
+    },
+    note: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+    // recordedBy: {
+    //   type: Schema.Types.ObjectId,
+    //   ref:  "User",
+    // },
+  },
+  { timestamps: true }
+)
+
+// Index for fast date-range queries
+expenseSchema.index({ date: -1 })
+expenseSchema.index({ category: 1, date: -1 })
+
+const ExpenseModel = model("expense", expenseSchema)
+export default ExpenseModel
