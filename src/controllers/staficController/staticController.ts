@@ -1,8 +1,8 @@
 import { type Request, type Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import userModel from "../../models/userModel.js";
-import studentApplicationModel from "../../models/studentApplicationModel.js";
+import userModel from "../../modules/user/userModel.js";
+import studentApplicationModel from "../../modules/student.application/studentApplicationModel.js";
 import NotificationModel from "../../models/notificationModel.js";
 import { changePasswordVerification } from "../../services/emailJobs.js";
 import redis from "../../services/Redis.js";

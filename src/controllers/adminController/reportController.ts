@@ -1,9 +1,9 @@
 import { type Request, type Response } from "express";
-import expenseModel from "../../models/expenseModel.js";
-import Payment from "../../models/paymentModel.js";
+import expenseModel from "../../modules/expense/expenseModel.js";
+import Payment from "../../modules/payment/payment.model.js";
 import Report from "../../models/reportModel.js";
-import roomModel from "../../models/roomModel.js";
-import studentApplicationModel from "../../models/studentApplicationModel.js";
+import roomModel from "../../modules/hostel/room.model.js";
+import studentApplicationModel from "../../modules/student.application/studentApplicationModel.js";
 
 // Helper for cleaner date resets
 const startOfDay = (d: Date) => new Date(d.setHours(0, 0, 0, 0));

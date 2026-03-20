@@ -1,6 +1,6 @@
-import FeeInvoiceModel from "../models/FeeInvoice.js";
+import FeeInvoiceModel from "../modules/feeInvoice/FeeInvoice.js";
 import FeeTemplate from "../models/FeeTemplate.js";
-import studentApplicationModel from "../models/studentApplicationModel.js";
+import studentApplicationModel from "../modules/student.application/studentApplicationModel.js";
 
 
 const getMonthStartEnd=(year:number,month:number)=>{

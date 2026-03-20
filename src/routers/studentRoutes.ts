@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getStudentDashboardDetails,getFees,getRoomMates,getStudentRoom,getComplaints,addComplaint,changePassword } from "../controllers/StudentController/studentController.js";
-import { getStudentMessDetails } from "../controllers/adminController/messController.js";
+import { getStudentMessDetails } from "../modules/messSubscription/messController.js";
 const routes = Router();
 routes.get("/dashboard-details",getStudentDashboardDetails);
 routes.get('/room-mates',getRoomMates);

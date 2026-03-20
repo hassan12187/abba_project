@@ -1,7 +1,7 @@
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { Types } from "mongoose";
 
-const TOKEN_SECRET=(process.env.ACCESS_TOKEN_SECRET as jwt.Secret);
+const TOKEN_SECRET=(process.env.JWT_SECRET as jwt.Secret);
 interface User extends JwtPayload{
 _id:string|Types.ObjectId,
 role:string,

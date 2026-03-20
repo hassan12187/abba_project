@@ -1,4 +1,4 @@
-import userModel from "../../models/userModel.js";
+import userModel from "../../modules/user/userModel.js";
 import { getAccessToken, getRefreshedToken } from "../../services/jwtService.js";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import type {Response,Request} from "express";

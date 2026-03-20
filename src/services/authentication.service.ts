@@ -1,4 +1,4 @@
-import userModel from "../models/userModel.js";
+import userModel from "../modules/user/userModel.js";
 import bcrypt from "bcrypt";
 import { checkToken, getAccessToken, getRefreshedToken } from "./jwtService.js";
 import type {Response,Request, NextFunction} from "express";

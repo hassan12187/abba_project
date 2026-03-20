@@ -1,5 +1,5 @@
-import expenseModel from "../models/expenseModel.js";
-import paymentModel from "../models/paymentModel.js";
+import expenseModel from "../modules/expense/expenseModel.js";
+import paymentModel from "../modules/payment/payment.model.js";
 import reportModel from "../models/reportModel.js";
 
 export const handleGenerateMontlyReport=async()=>{

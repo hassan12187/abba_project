@@ -1,10 +1,10 @@
-import studentApplicationModel from "../../models/studentApplicationModel.js";
+import studentApplicationModel from "../../modules/student.application/studentApplicationModel.js";
 import redis from "../../services/Redis.js";
 import mongoose from "mongoose";
-import ComplainModel from "../../models/complaintModel.js";
-import userModel from "../../models/userModel.js";
+import ComplainModel from "../../modules/complaint/complaintModel.js";
+import userModel from "../../modules/user/userModel.js";
 import bcrypt from "bcrypt";
-import FeeInvoiceModel from "../../models/FeeInvoice.js";
+import FeeInvoiceModel from "../../modules/feeInvoice/FeeInvoice.js";
 import {type Request,type Response} from "express";
 
 interface AuthenticatedRequest extends Request {
@@ -86,14 +86,14 @@ export const getStudentDashboardDetails = async (req: AuthenticatedRequest, res:
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
-export const getRoomMates=async(req:any,res:any)=>{
+export const getRoomMates=async(req:AuthenticatedRequest,res:any)=>{
     try {
         const id = req.id;
     } catch (error) {
         return res.sendStatus(500);
     }
 };
-export const getStudentRoom=async(req:any,res:any)=>{
+export const getStudentRoom=async(req:AuthenticatedRequest,res:any)=>{
     try {
         const id = req.id;
         const room=await studentApplicationModel.aggregate([
@@ -171,7 +171,7 @@ export const getStudentRoom=async(req:any,res:any)=>{
         return res.sendStatus(500);
     }
 };
-export const getComplaints=async(req:any,res:any)=>{
+export const getComplaints=async(req:AuthenticatedRequest,res:any)=>{
     try {
         const id = req.id;
         const cachedData=await redis.get(`complaints:${id}`);
@@ -230,7 +230,7 @@ export const addComplaint = async (req: AuthenticatedRequest, res: Response) => 
         return res.status(500).json({ message: "Internal server error" });
     }
 };
-export const changePassword=async(req:any,res:any)=>{
+export const changePassword=async(req:AuthenticatedRequest,res:any)=>{
     try {
         const id = req.id;
         const {currentPassword,newPassword,confirmPassword}=req.body;
@@ -247,38 +247,173 @@ export const changePassword=async(req:any,res:any)=>{
     }
 };
 
-export const getFees=async(req:any,res:any)=>{
+export const getFees=async(req:AuthenticatedRequest,res:any)=>{
     try {
         const id = req.id;
-        const [result,totalFee]=await Promise.all([
-            await studentApplicationModel.findById(id,"hostelJoinDate hostelLeaveDate").populate({
-            path:"room_id",
-            select:"fees"
-        }).lean(),
-        await FeeInvoiceModel.aggregate([
+        // if(req.query.q==="structure"){
+        //     console.log(req.query.q);
+        //     return res.status(200).send(getFeeStructure(id));
+        // }
+        const [totalFees,partialFees,currentInvoice]=await Promise.all([
+        FeeInvoiceModel.aggregate([
             {$match:{student_id:new mongoose.Types.ObjectId(id)}},
             {
                 $group:{
                     _id:null,
-                    totalPaid:{$sum:"$totalPaid"}
+                    totalPaid:{$sum:"$totalPaid"},
+                    totalAmount:{$sum:"$totalAmount"}
                 }
             }
-        ])
-        ])
-        if(!result)return res.sendStatus(404);
-        const {hostelJoinDate,hostelLeaveDate,room_id}=result as any;
-        if(!hostelJoinDate || !room_id || !room_id.fees){
-            return res.status(404).json({message:"Incomplete record: missing dates or room fees"})
+        ]),
+        FeeInvoiceModel.aggregate([
+            {$match:{student_id:new mongoose.Types.ObjectId(id)}},
+            {$unwind:{path:"$lineItems"}},
+            {
+                $group:{
+                    _id:{
+                        category:{
+                            $switch:{
+                                branches:[
+                                    {
+                                        case:{
+                                            $regexMatch:{
+                                                input:{$toLower:"$lineItems.description"},
+                                                regex:/room|rent|accommodation/
+                                            }
+                                        },
+                                        then:"Rent Charges"
+                                    },
+                                    {
+                                        case:{
+                                            $regexMatch:{
+                                                input:{$toLower:"$lineItems.description"},
+                                                regex:/mess|meal|food|dining/
+                                            }
+                                        },
+                                        then:"Mess Charges"
+                                    }
+                                ],
+                                default:"other",
+                            },
+                        },
+                        status:{
+                            $switch:{
+                                branches:[
+                                    {
+                                        case:{
+                                            $gte:["$lineItems.paid","$lineItems.amount"]
+                                        },
+                                        then:"paid"
+                                    }
+                                ],
+                                default:"pending"
+                            }
+                        }
+                    },
+                    totalAmount: { $sum: "$lineItems.amount" },
+                    totalPaid:{$sum:"$lineItems.paid"},
+                    invoiceCount: { $sum: 1 },
+                },
+            },
+            {$project:{
+                _id:0,
+                category:"$_id.category",
+                status:"$_id.status",
+                totalAmount:1,
+                totalPaid:1,
+                invoiceCount:1
+            }}
+        ]),
+        // get Current month invoice details
+        FeeInvoiceModel.findOne({student_id:new mongoose.Types.ObjectId(id)}).sort({issueDate:-1}).lean()
+        ]);
+        console.log(partialFees);
+        if(!totalFees)return res.sendStatus(404);
+        // console.log(partialFees);
+        // const {hostelJoinDate,hostelLeaveDate,room_id}=result as any;
+        // if(!hostelJoinDate || !room_id || !room_id.fees){
+        //     return res.status(404).json({message:"Incomplete record: missing dates or room fees"})
+        // };
+        // const endDay = hostelLeaveDate ? new Date(hostelLeaveDate) : new Date();
+        // const startDay=new Date(hostelJoinDate);
+        // const joinTotalMonths=(startDay.getFullYear()*12) + hostelJoinDate.getMonth();
+        // const leaveTotalMonths=(endDay.getFullYear()*12)+hostelLeaveDate.getMonth();
+        // let monthDif =Math.max(1,leaveTotalMonths-joinTotalMonths);
+        // const totalAmount=(room_id.fees*monthDif);
+        // return res.status(200).json({totalAmount,totalPaid:totalFee[0].totalPaid,balanceDue:(totalAmount-totalFee[0].totalPaid),progress:(totalAmount/totalFee[0].totalPaid)*100});
+        const DM={
+            totalPaid:totalFees[0].totalPaid,
+            totalAmount:totalFees[0].totalAmount,
+            balanceDue:totalFees[0].totalAmount-totalFees[0].totalPaid,
+            partialFees
         };
-        const endDay = hostelLeaveDate ? new Date(hostelLeaveDate) : new Date();
-        const startDay=new Date(hostelJoinDate);
-        const joinTotalMonths=(startDay.getFullYear()*12) + hostelJoinDate.getMonth();
-        const leaveTotalMonths=(endDay.getFullYear()*12)+hostelLeaveDate.getMonth();
-        let monthDif =Math.max(1,leaveTotalMonths-joinTotalMonths);
-        const totalAmount=(room_id.fees*monthDif);
-        return res.status(200).json({totalAmount,totalPaid:totalFee[0].totalPaid,balanceDue:(totalAmount-totalFee[0].totalPaid),progress:(totalAmount/totalFee[0].totalPaid)*100});
+        return res.status(200).send(DM);
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
     }
 };
+
+// export const getFeeStructure=async(studentId:string|undefined)=>{
+//          const result = await FeeInvoiceModel.aggregate([
+//     {
+//       $match: {
+//         student_id: new mongoose.Types.ObjectId(studentId),
+//         status: { $ne: "Cancelled" },
+//       },
+//     },
+//     { $unwind: "$lineItems" },
+//     {
+//       $group: {
+//         _id: {
+//           // Normalize description to a category key
+//           category: {
+//             $switch: {
+//               branches: [
+//                 {
+//                   case: {
+//                     $regexMatch: {
+//                       input: { $toLower: "$lineItems.description" },
+//                       regex: /room|rent|accommodation/,
+//                     },
+//                   },
+//                   then: "room",
+//                 },
+//                 {
+//                   case: {
+//                     $regexMatch: {
+//                       input: { $toLower: "$lineItems.description" },
+//                       regex: /mess|meal|food|dining/,
+//                     },
+//                   },
+//                   then: "mess",
+//                 },
+//               ],
+//               default: "other",
+//             },
+//           },
+//         },
+//         totalCharged: { $sum: "$lineItems.amount" },
+//         invoiceCount: { $sum: 1 },
+//       },
+//     },
+//     {
+//       $project: {
+//         _id: 0,
+//         category: "$_id.category",
+//         totalCharged: 1,
+//         invoiceCount: 1,
+//       },
+//     },
+//   ]);
+
+
+//   // Shape into a clean object
+//   const summary = { room: 0, mess: 0, other: 0 };
+//   for (const row of result) {
+//     summary[row.category as keyof typeof summary] = row.totalCharged;
+//   };
+//   console.log(summary);
+//   return summary;
+
+// };
