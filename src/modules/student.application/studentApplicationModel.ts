@@ -1,3 +1,4 @@
+import { timeStamp } from "console";
 import {Schema,model} from "mongoose";
 
 const studentApplicationSchema=new Schema({
@@ -106,6 +107,6 @@ const studentApplicationSchema=new Schema({
         type:Schema.Types.ObjectId,
         ref:"room"
     }
-});
+},{timestamps:true});
 const studentApplicationModel=model("student_application",studentApplicationSchema);
 export default studentApplicationModel;

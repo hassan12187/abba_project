@@ -32,7 +32,7 @@ router.get("/stats", getSubscriptionStats);
 router.get("/expiring-soon", getExpiringSoon);
 
 // GET /subscriptions?status=Active&planType=Monthly&page=1&limit=10
-router.get("/", validate(subscriptionFiltersSchema), getAllSubscriptions);
+router.get("/",validate(subscriptionFiltersSchema), getAllSubscriptions);
 
 // GET /subscriptions/:id
 router.get("/:id", validate(subscriptionIdSchema), getSubscriptionById);

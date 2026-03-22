@@ -96,7 +96,7 @@ export const resetPasswordSchema = z.object({
 // ─── Refresh token ────────────────────────────────────────────────────────────
 export const refreshTokenSchema = z.object({
   body: z.object({
-    refreshToken: z.string().min(1, "Refresh token is required."),
+    refreshToken: z.string().min(1, "Refresh token is required.").optional(),
   }),
 })
 
