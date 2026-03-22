@@ -1,4 +1,4 @@
-import NotificationModel from "../../models/notificationModel.js";
+import NotificationModel from "../../modules/notifications/notificaton.model.js";
 import redis from "../../services/Redis.js";
 import type {Request,Response} from "express";
 

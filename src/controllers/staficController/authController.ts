@@ -7,10 +7,12 @@ interface ExtraJWT extends JwtPayload{
     id?:any
 }
 export const handleRefreshToken=async(req:Request,res:Response)=>{
+    console.log("refresh token handler");
     const refreshToken=req.cookies.refreshToken;
+    console.log(refreshToken);
     if(!refreshToken)return res.sendStatus(401);
     try {
-        const refreshSecret=process.env.ACCESS_TOKEN_SECRET;
+        const refreshSecret=process.env.JWT_SECRET;
         if(!refreshSecret){
             return res.sendStatus(500);
         };

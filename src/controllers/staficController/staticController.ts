@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../../modules/user/userModel.js";
 import studentApplicationModel from "../../modules/student.application/studentApplicationModel.js";
-import NotificationModel from "../../models/notificationModel.js";
+import NotificationModel from "../../modules/notifications/notificaton.model.js";
 import { changePasswordVerification } from "../../services/emailJobs.js";
 import redis from "../../services/Redis.js";
 import { io } from "../../index.js";

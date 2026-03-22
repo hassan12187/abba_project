@@ -5,7 +5,7 @@ const studentApplicationSchema=new Schema({
         type:String,
         required:[true,"Student Name is Required."],
         minlength:[3,"Student Name must be at least 3 Characters."],
-        maxlength:[30,"Student Name must be at most 30 Characters."],
+        maxlength:[100,"Student Name must be at most 30 Characters."],
         trim:true
     },
     student_email:{
@@ -17,14 +17,14 @@ const studentApplicationSchema=new Schema({
         unique:true
     },
     student_roll_no:{
-        type:Number,
+        type:String,
         unique:true
     },
     father_name:{
         type:String,
         required:[true,"Father Name is Required."],
         minlength:[3,"Father Name must be atleast 3 Characters."],
-        maxlength:[30,"Father Name must be alteast 30 Characters."],
+        maxlength:[100,"Father Name must be alteast 100 Characters."],
         trim:true
     },
     student_cellphone:{

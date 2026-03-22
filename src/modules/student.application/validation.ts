@@ -22,7 +22,7 @@ export const createApplicationSchema = z.object({
     student_name: z
       .string({ required_error: "Student name is required" })
       .min(3, "Must be at least 3 characters")
-      .max(30, "Must be at most 30 characters")
+      .max(100, "Must be at most 100 characters")  // ← FIX 1: was 30, too short for full names
       .trim(),
 
     student_email: z
@@ -34,19 +34,30 @@ export const createApplicationSchema = z.object({
     father_name: z
       .string({ required_error: "Father name is required" })
       .min(3, "Must be at least 3 characters")
-      .max(30, "Must be at most 30 characters")
+      .max(100, "Must be at most 100 characters")  // ← FIX 1: same — 30 too short
       .trim(),
+
+    // ── FIX 2: student_roll_no was missing from create schema ─────────────────
+    // The frontend sends student_roll_no but the old schema only had student_reg_no.
+    // FormData sends numbers as strings so we coerce it.
+    student_roll_no: z
+      .string().trim(),
+      // .or(z.number())
+      // .transform((v) => Number(v))
+      // .pipe(z.number().int().positive("Roll number must be a positive integer"))
+      // .optional(),
+
+    student_reg_no:    z.string().trim().optional(),
 
     student_cellphone: phoneNo.optional(),
     father_cellphone:  phoneNo.optional(),
     guardian_cellphone:phoneNo.optional(),
     active_whatsapp_no:phoneNo.optional(),
-    student_reg_no:    z.string().trim().optional(),
 
     guardian_name: z
       .string()
       .min(3, "Must be at least 3 characters")
-      .max(30, "Must be at most 30 characters")
+      .max(100, "Must be at most 100 characters")
       .trim()
       .optional(),
 
@@ -56,8 +67,25 @@ export const createApplicationSchema = z.object({
     city:             z.string().max(50).trim().optional(),
     province:         z.string().max(50).trim().optional(),
     date_of_birth:    dobSchema.optional(),
-    academic_year:    z.string().regex(/^\d{4}-\d{4}$/, "Academic year must be YYYY-YYYY").optional(),
-    gender:           genderEnum.optional(),
+
+    // academic_year: frontend sends "2024-2025" which is YYYY-YYYY ✓
+    academic_year: z
+      .string()
+      .regex(/^\d{4}-\d{4}$/, "Academic year must be YYYY-YYYY")
+      .optional(),
+
+    gender: genderEnum.optional(),
+
+    reason_for_applying: z.string().max(1000).trim().optional(),
+
+    // ── FIX 3: image fields ───────────────────────────────────────────────────
+    // Multer stores files in req.files, NOT req.body.
+    // The route handler reads req.files and injects the paths into the DTO
+    // manually AFTER validation runs.
+    // These fields must be optional strings here so the route handler's injected
+    // paths pass through without being stripped by Zod.
+    student_image: z.string().optional(),
+    cnic_image:    z.string().optional(),
   }),
 })
 
@@ -66,13 +94,13 @@ export const updateApplicationSchema = z.object({
   params: z.object({ id: objectId }),
   body: z
     .object({
-      student_name:      z.string().min(3).max(30).trim().optional(),
+      student_name:      z.string().min(3).max(100).trim().optional(),
       student_email:     z.string().email().toLowerCase().trim().optional(),
       student_roll_no:   z.number().int().positive().optional(),
-      father_name:       z.string().min(3).max(30).trim().optional(),
+      father_name:       z.string().min(3).max(100).trim().optional(),
       student_cellphone: phoneNo.optional(),
       father_cellphone:  phoneNo.optional(),
-      guardian_name:     z.string().min(3).max(30).trim().optional(),
+      guardian_name:     z.string().min(3).max(100).trim().optional(),
       guardian_cellphone:phoneNo.optional(),
       cnic_no:           cnicSchema.optional(),
       active_whatsapp_no:phoneNo.optional(),
@@ -84,10 +112,13 @@ export const updateApplicationSchema = z.object({
       academic_year:     z.string().regex(/^\d{4}-\d{4}$/).optional(),
       gender:            genderEnum.optional(),
       student_reg_no:    z.string().trim().optional(),
+      reason_for_applying: z.string().max(1000).trim().optional(),
       hostelJoinDate:    z.string().datetime().transform(v => new Date(v)).optional(),
       hostelLeaveDate:   z.string().datetime().transform(v => new Date(v)).optional(),
       isActive:          z.boolean().optional(),
       room_id:           objectId.optional(),
+      student_image:     z.string().optional(),
+      cnic_image:        z.string().optional(),
     })
     .refine((d) => Object.keys(d).length > 0, {
       message: "At least one field must be provided",

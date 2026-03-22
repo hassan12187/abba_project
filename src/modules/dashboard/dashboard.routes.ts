@@ -17,5 +17,5 @@ export const getDashboard = asyncHandler(async (_req, res) => {
 // Mount as:  app.use("/api/admin/report", dashboardRouter)
 // Endpoint:  GET /api/admin/report/home-dashboard
 
-// export const dashboardRouter = Router()
-// dashboardRouter.get("/", getDashboard)
+export const dashboardRouter = Router()
+dashboardRouter.get("/", getDashboard)

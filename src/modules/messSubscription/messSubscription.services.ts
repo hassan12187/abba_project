@@ -138,7 +138,8 @@ export const MessSubscriptionService = {
   async getByStudentId(studentId: string): Promise<IMessSubscription> {
     const sub = await MessSubscription.findOne({ student: studentId })
       .populate("student", "student_name student_email student_roll_no")
-      .lean()
+      .lean();
+      console.log(sub)
     if (!sub) throw HttpError.notFound(`No subscription found for student '${studentId}'.`)
     return sub as IMessSubscription
   },

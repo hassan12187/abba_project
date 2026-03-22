@@ -24,7 +24,7 @@ import {
 } from "./feeinvoice.student.controller.js"
 
 // ─── Auth middleware ──────────────────────────────────────────────────────────
-import { authenticate, isAdmin, isStaff, isStudent } from "../../middleware/Auth.middleware.js"
+import { authenticate, isAdmin, isStudent } from "../../middleware/Auth.middleware.js"
 
 // ─── Validation middleware ────────────────────────────────────────────────────
 import { validate } from "../../middleware/validate.middleware.js"
@@ -78,16 +78,16 @@ router.get("/me/:id", authenticate, isStudent, validate(myInvoiceIdSchema), getM
 // ─────────────────────────────────────────────────────────────────────────────
 
 // GET  /invoices/stats              — staff + admin
-router.get("/stats",             authenticate, isStaff, getInvoiceStats)
+router.get("/stats",             authenticate, isAdmin, getInvoiceStats)
 
 // POST /invoices/mark-overdue       — admin only (bulk write)
 router.post("/mark-overdue",     authenticate, isAdmin, validate(markOverdueSchema), markOverdueInvoices)
 
 // GET  /invoices/students/search    — staff + admin
-router.get("/students/search",   authenticate, isStaff, validate(studentSearchSchema), searchStudent)
+router.get("/students/search",   authenticate, isAdmin, validate(studentSearchSchema), searchStudent)
 
 // GET  /invoices/templates          — staff + admin
-router.get("/templates",         authenticate, isStaff, getFeeTemplates)
+router.get("/templates",         authenticate, isAdmin, getFeeTemplates)
 
 // POST /invoices/templates          — admin only
 router.post("/templates",        authenticate, isAdmin, validate(createFeeTemplateSchema), createFeeTemplate)
@@ -96,13 +96,13 @@ router.post("/templates",        authenticate, isAdmin, validate(createFeeTempla
 router.delete("/templates/:id",  authenticate, isAdmin, validate(idParamSchema), deleteFeeTemplate)
 
 // GET  /invoices                    — staff + admin
-router.get("/",                  authenticate, isStaff, validate(invoiceFiltersSchema), getAllInvoices)
+router.get("/",                  authenticate, isAdmin, validate(invoiceFiltersSchema), getAllInvoices)
 
 // POST /invoices                    — admin only
 router.post("/",                 authenticate, isAdmin, validate(createInvoiceSchema), createInvoice)
 
 // GET  /invoices/:id                — staff + admin
-router.get("/:id",               authenticate, isStaff, validate(idParamSchema), getInvoiceById)
+router.get("/:id",               authenticate, isAdmin, validate(idParamSchema), getInvoiceById)
 
 // PATCH /invoices/:id               — admin only
 router.patch("/:id",             authenticate, isAdmin, validate(updateInvoiceSchema), updateInvoice)
@@ -111,6 +111,6 @@ router.patch("/:id",             authenticate, isAdmin, validate(updateInvoiceSc
 router.patch("/:id/cancel",      authenticate, isAdmin, validate(cancelInvoiceSchema), cancelInvoice)
 
 // POST /invoices/:invoiceId/payments — staff + admin (front desk)
-router.post("/:invoiceId/payments", authenticate, isStaff, validate(addPaymentSchema), addPayment)
+router.post("/:invoiceId/payments", authenticate, isAdmin, validate(addPaymentSchema), addPayment)
 
 export default router
