@@ -305,3 +305,4 @@ export const MessMenuService = {
     return { deletedCount: result.deletedCount }
   },
 }
+export default MessMenuService;

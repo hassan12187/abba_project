@@ -4,10 +4,10 @@ import { StudentInvoiceService }   from "../feeInvoice/feeinvoice.student.servic
 import { ComplaintService }        from "../complaint/complaint.services.js"
 import { AttendanceService }       from "../mealattendance/attendance.service.js"
 import studentApplicationModel     from "../student.application/studentApplicationModel.js"
-import  MessSubscriptionModel    from "../messSubscription/MessSubscription.model.js"
 import { validate }                from "../../middleware/validate.middleware.js"
 import { z }                       from "zod"
 import { HttpError }               from "../../utils/errors.js"
+import MessMenuService from "../messMenu/messmenu.services.js"
 
 // ─── Zod helpers ──────────────────────────────────────────────────────────────
 const objectId  = z.string().regex(/^[a-f\d]{24}$/i, "Invalid ObjectId")
@@ -46,6 +46,7 @@ studentRouter.get("/profile", asyncHandler(async (req, res) => {
     .lean()
 
   if (!profile) throw HttpError.notFound("Profile not found.")
+    console.log(profile);
   res.status(200).json({ success: true, data: profile })
 }))
 
@@ -57,6 +58,7 @@ studentRouter.get("/profile", asyncHandler(async (req, res) => {
 // ──────────────────────────────────────────────────────────────────────────────
 studentRouter.get("/invoices/summary", asyncHandler(async (req, res) => {
   const data = await StudentInvoiceService.getMySummary(appId(req))
+  console.log(data);
   res.status(200).json({ success: true, data })
 }))
 
@@ -243,7 +245,7 @@ studentRouter.get("/dashboard", asyncHandler(async (req, res) => {
 
     // Active mess subscription
     (async () => {
-      const MessSubscription = (await import("../messSubscription/messSubscription.model.js")).default
+      const MessSubscription = (await import("../messSubscription/MessSubscription.model.js")).default
       return MessSubscription.findOne({ student: studentId, status: "Active" })
         .select("planType monthlyFee validUntil status")
         .lean()
@@ -264,4 +266,34 @@ studentRouter.get("/dashboard", asyncHandler(async (req, res) => {
       subscription,
     },
   })
+}))
+
+
+// ─── ADD THESE ROUTES to your student.routes.ts ───────────────────────────────
+// Copy these into student.routes.ts, they access the mess menu without admin auth.
+
+
+// GET /student/mess-menu            — full week
+// GET /student/mess-menu/today      — today only
+// GET /student/mess-menu/:day       — specific day e.g. Monday
+
+studentRouter.get("/mess-menu/today", asyncHandler(async (_req, res) => {
+  const menu = await MessMenuService.getTodayMenu()
+  res.status(200).json({ success: true, data: menu })
+}))
+
+studentRouter.get("/mess-menu/:day", asyncHandler(async (req, res) => {
+  const { day } = req.params
+  const valid = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+  if (!valid.includes(day)) {
+    res.status(400).json({ success:false, message:`Invalid day: ${day}. Must be one of ${valid.join(", ")}` })
+    return
+  }
+  const menu = await MessMenuService.getByDay(day as any)
+  res.status(200).json({ success: true, data: menu })
+}))
+
+studentRouter.get("/mess-menu", asyncHandler(async (_req, res) => {
+  const menus = await MessMenuService.getWeeklyMenu()
+  res.status(200).json({ success: true, data: menus })
 }))

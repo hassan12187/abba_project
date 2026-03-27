@@ -1,4 +1,4 @@
-import { FilterQuery, SortOrder } from "mongoose"
+import { FilterQuery, SortOrder, Types } from "mongoose"
 import AttendanceRecord from "./attendance.model.js"
 import redis            from "../../services/Redis.js"
 import { HttpError }    from "../../utils/errors.js"
@@ -206,7 +206,7 @@ export const AttendanceService = {
     const cached   = await redis.get(cacheKey)
     if (cached) return JSON.parse(cached)
 
-    const match: any = { student: studentId }
+    const match: any = { student: new Types.ObjectId(studentId) }
     if (from || to) {
       match.date = {}
       if (from) match.date.$gte = startOfDay(new Date(from))
@@ -231,7 +231,8 @@ export const AttendanceService = {
     ])
 
     if (!studentDoc) throw HttpError.notFound(`No attendance records found for student ${studentId}.`)
-
+      console.log(byMealRows);
+      console.log(studentDoc);
     const byMeal: Record<string, { present: number; absent: number; onLeave: number }> = {}
     let totalPresent = 0, totalAbsent = 0, totalLeave = 0
 
