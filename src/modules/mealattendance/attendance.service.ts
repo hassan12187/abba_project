@@ -204,6 +204,7 @@ export const AttendanceService = {
   ): Promise<StudentAttendanceSummary> {
     const cacheKey = `${PREFIX_STUDENT}${studentId}:${from ?? "start"}:${to ?? "end"}`
     const cached   = await redis.get(cacheKey)
+    // console.log(JSON.parse(cached));
     if (cached) return JSON.parse(cached)
 
     const match: any = { student: new Types.ObjectId(studentId) }
@@ -229,10 +230,7 @@ export const AttendanceService = {
         .populate("student", "student_name student_roll_no student_email")
         .lean(),
     ])
-
     if (!studentDoc) throw HttpError.notFound(`No attendance records found for student ${studentId}.`)
-      console.log(byMealRows);
-      console.log(studentDoc);
     const byMeal: Record<string, { present: number; absent: number; onLeave: number }> = {}
     let totalPresent = 0, totalAbsent = 0, totalLeave = 0
 
@@ -242,7 +240,6 @@ export const AttendanceService = {
       totalAbsent  += row.absent
       totalLeave   += row.onLeave
     }
-
     // Fill in zero entries for meal types with no records
     for (const meal of MEAL_TYPES) {
       if (!byMeal[meal]) byMeal[meal] = { present: 0, absent: 0, onLeave: 0 }
@@ -258,7 +255,6 @@ export const AttendanceService = {
       attendancePct:    total > 0 ? Math.round((totalPresent / total) * 1000) / 10 : 0,
       byMeal:           byMeal as any,
     }
-
     await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_STUDENT)
     return result
   },
