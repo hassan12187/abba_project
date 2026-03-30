@@ -58,7 +58,6 @@ studentRouter.get("/profile", asyncHandler(async (req, res) => {
 // ──────────────────────────────────────────────────────────────────────────────
 studentRouter.get("/invoices/summary", asyncHandler(async (req, res) => {
   const data = await StudentInvoiceService.getMySummary(appId(req))
-  console.log(data);
   res.status(200).json({ success: true, data })
 }))
 

@@ -7,7 +7,7 @@ import { createServer } from "http"
 import { schedule }   from "node-cron"
 
 // ── Modules ───────────────────────────────────────────────────────────────────
-import connectDB               from "./connection.js"
+import connectDB               from "./config/connection.js"
 import { globalErrorHandler }  from "./middleware/error.middleware.js"
 import { authenticate, isAdmin } from "./middleware/Auth.middleware.js"
 import { generateMonthlyFees } from "./services/FeeService.js"

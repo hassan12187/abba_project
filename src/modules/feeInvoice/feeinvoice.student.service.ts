@@ -6,6 +6,8 @@ import {
   InvoiceStatus,
 } from "./types.js"
 import { HttpError } from "../../utils/errors.js"
+import { Types } from "mongoose"
+import redis from "../../services/Redis.js"
 
 export interface StudentInvoiceFilters {
   status?:      InvoiceStatus
@@ -19,6 +21,8 @@ export interface StudentInvoiceSummary {
   totalPaid:        number
   totalOutstanding: number
   overdueCount:     number
+  totalAmount:number
+  progress:number
   lastPaymentDate:  Date | null
 }
 
@@ -35,7 +39,7 @@ export const StudentInvoiceService = {
   ): Promise<PaginatedResult<InvoiceListItem>> {
     const { status, billingMonth, page = 1, limit = 10 } = filters
 
-    const match: Record<string, unknown> = { student_id: studentId }
+    const match: Record<string, unknown> = { student_id: new Types.ObjectId(studentId) }
     if (status)       match.status       = status
     if (billingMonth) match.billingMonth = billingMonth
 
@@ -50,7 +54,7 @@ export const StudentInvoiceService = {
             foreignField: "_id", as: "room",
           },
         },
-        { $unwind: { path: "$room", preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: "$room", preserveNullAndEmptyArrays: false } },
         {
           $project: {
             invoiceNumber: 1,
@@ -74,7 +78,6 @@ export const StudentInvoiceService = {
       ]),
       FeeInvoiceModel.countDocuments(match),
     ])
-
     return {
       data:       rows as InvoiceListItem[],
       total,
@@ -111,39 +114,59 @@ export const StudentInvoiceService = {
    * Account summary card shown on the student dashboard.
    */
   async getMySummary(studentId: string): Promise<StudentInvoiceSummary> {
+    if(!Types.ObjectId.isValid(studentId)){
+      throw HttpError.badRequest("Invalid Student ID.");
+    }
+    const oid = new Types.ObjectId(studentId);
+    interface InvoiceAggResult{
+    totalInvoices:    number;
+    totalPaid:        number;
+    totalOutstanding: number;
+    totalAmount:      number;
+    overdueCount:     number;
+    };
+
+    const cached = await redis.get(`invoice:summary:${studentId}`);
+    if(cached){
+      return JSON.parse(cached) as StudentInvoiceSummary;
+    }
+
     const [agg, lastPayment] = await Promise.all([
-      FeeInvoiceModel.aggregate([
-        { $match: { student_id: studentId } },
+      FeeInvoiceModel.aggregate<InvoiceAggResult>([
+        { $match: { student_id: oid } },
         {
           $group: {
             _id:             null,
             totalInvoices:   { $sum: 1 },
             totalPaid:       { $sum: "$totalPaid" },
             totalOutstanding:{ $sum: { $subtract: ["$totalAmount", "$totalPaid"] } },
+            totalAmount:{$sum:"$totalAmount"},
             overdueCount:    {
-              $sum: { $cond: [{ $eq: ["$status", "Overdue"] }, 1, 0] },
+              $sum: { $cond: [{ $eq: ["$status", "overdue"] }, 1, 0] },
             },
           },
         },
       ]),
 
       FeeInvoiceModel
-        .findOne({ student_id: studentId, totalPaid: { $gt: 0 } })
+        .findOne({ student_id: oid, totalPaid: { $gt: 0 } })
         .sort({ updatedAt: -1 })
         .select("updatedAt")
         .lean(),
     ])
-
     const stats = agg[0] ?? {
-      totalInvoices: 0, totalPaid: 0, totalOutstanding: 0, overdueCount: 0,
+      totalInvoices: 0, totalPaid: 0, totalOutstanding: 0, overdueCount: 0,progress:0,totalAmount:0
     }
-
-    return {
+    const sumRes={
       totalInvoices:    stats.totalInvoices,
       totalPaid:        stats.totalPaid,
       totalOutstanding: stats.totalOutstanding,
       overdueCount:     stats.overdueCount,
+      totalAmount:stats.totalAmount,
+      progress:stats.totalAmount > 0 ? Math.min((stats.totalPaid/stats.totalAmount)*100,100):0,
       lastPaymentDate:  lastPayment ? (lastPayment as any).updatedAt : null,
     }
+    await redis.setex(`invoice:summary:${studentId}`,60,JSON.stringify(sumRes)).catch((err)=>console.error("[cache] Failed to set invoice summary:", err));
+    return sumRes;
   },
 }
