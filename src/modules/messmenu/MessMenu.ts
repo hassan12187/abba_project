@@ -1,4 +1,4 @@
-import {Schema,model} from "mongoose";
+import mongoose, {Schema,model} from "mongoose";
 
 const messMenuSchema=new Schema({
     dayOfWeek:{
@@ -28,4 +28,5 @@ const messMenuSchema=new Schema({
   }
 },{timestamps:true});
 
-export default model("MessMenu",messMenuSchema);
+const messSubscriptionModel= mongoose.models.MessMenu || model("MessMenu",messMenuSchema);
+export default messSubscriptionModel; 

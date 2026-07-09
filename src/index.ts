@@ -32,6 +32,7 @@ import feeInvoiceRouter        from "./modules/feeInvoice/feeinvoice.routes.js"
 import subscriptionRouter      from "./modules/messSubscription/messSubscription.routes.js"
 import messMenuRouter          from "./modules/messmenu/messmenu.routes.js"
 import { publicApplicationRouter } from "./modules/student.application/publicApplication.routes.js"
+// import messSubscriptionModel from "./modules/messSubscription/messSubscription.model.js"
 
 // ── Notification routers (new) ────────────────────────────────────────────────
 import {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express"
-// import { MessMenuService } from "./messmenu.services.js"
+import { MessMenuService } from "./messmenu.services.js"
 
 const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>) =>
