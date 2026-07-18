@@ -5,7 +5,6 @@ const TOKEN_SECRET=(process.env.JWT_SECRET as jwt.Secret);
 interface User extends JwtPayload{
 _id:string|Types.ObjectId,
 role:string,
-
 };
 export const getAccessToken=(user:User)=>{
     if(!user._id)throw new Error("User ID is required to generate a token.");

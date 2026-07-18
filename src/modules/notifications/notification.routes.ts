@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction, Router } from "express"
 import { NotificationService } from "./notification.services.js"
-import { authenticate, requireRole, requireApplicationId } from "../../middleware/Auth.middleware.js"
 import { validate } from "../../middleware/validate.middleware.js"
 import { z } from "zod"
 
@@ -14,8 +13,8 @@ const filtersSchema = z.object({
   query: z.object({
     isRead: z.enum(["true","false"]).transform(v => v === "true").optional(),
     type:   z.string().optional(),
-    page:   z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:  z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("20"),
+    page:   z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:  z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(20),
   }),
 })
 
@@ -25,7 +24,7 @@ const filtersSchema = z.object({
 const getAdminNotifications = asyncHandler(async (req, res) => {
   const { isRead, type, page, limit } = req.query as any
   const result = await NotificationService.getAdminNotifications({
-    isRead: isRead === "true" ? true : isRead === "false" ? false : undefined,
+    isRead: isRead === "true" ? true : false ,
     type,
     page:  Number(page)  || 1,
     limit: Number(limit) || 20,
@@ -41,7 +40,7 @@ const markAllAdminRead = asyncHandler(async (_req, res) => {
 
 /** PATCH /notifications/:id/read — mark single as read */
 const markOneRead = asyncHandler(async (req, res) => {
-  const notification = await NotificationService.markOneRead(req.params.id)
+  const notification = await NotificationService.markOneRead(req.params.id as string)
   if (!notification) {
     res.status(404).json({ success: false, message: "Notification not found." })
     return
@@ -51,7 +50,7 @@ const markOneRead = asyncHandler(async (req, res) => {
 
 /** DELETE /notifications/:id */
 const deleteOne = asyncHandler(async (req, res) => {
-  await NotificationService.deleteOne(req.params.id)
+  await NotificationService.deleteOne(req.params.id as string)
   res.status(200).json({ success: true, message: "Notification deleted." })
 })
 
@@ -67,7 +66,7 @@ const clearAll = asyncHandler(async (_req, res) => {
 const getStudentNotifications = asyncHandler(async (req, res) => {
   const { isRead, page, limit } = req.query as any
   const result = await NotificationService.getStudentNotifications(req.user!.sub, {
-    isRead: isRead === "true" ? true : isRead === "false" ? false : undefined,
+    isRead: isRead === "true" ? true : false ,
     page:  Number(page)  || 1,
     limit: Number(limit) || 20,
   })

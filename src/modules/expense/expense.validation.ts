@@ -10,13 +10,13 @@ const isoDate       = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY
 export const createExpenseSchema = z.object({
   body: z.object({
     description: z
-      .string({ required_error: "description is required" })
+      .string({ error: "description is required" })
       .min(3,  "description must be at least 3 characters")
       .max(500,"description must be at most 500 characters")
       .trim(),
 
     amount: z
-      .number({ required_error: "amount is required", invalid_type_error: "amount must be a number" })
+      .number({ error: "amount is required"})
       .positive("amount must be greater than 0")
       .transform((v) => Math.round(v * 100) / 100),
 
@@ -52,8 +52,8 @@ export const expenseFiltersSchema = z.object({
       from:     isoDate.optional(),
       to:       isoDate.optional(),
       search:   z.string().max(200).optional(),
-      page:     z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-      limit:    z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("15"),
+      page:     z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+      limit:    z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(15),
       sortBy:   z.enum(["date","amount","createdAt"]).optional().default("date"),
       sortOrder:z.enum(["asc","desc"]).optional().default("desc"),
     })

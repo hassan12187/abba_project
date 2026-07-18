@@ -12,7 +12,7 @@ const asyncHandler =
 
 /** Extracts the authenticated student's ID from req.user (set by auth middleware). */
 function requireStudentId(req: Request): string {
-  const studentId = req.user?.student_id ?? req.user?.sub
+  const studentId = req.user?.sub
   if (!studentId) throw HttpError.unauthorized("Student identity could not be determined.")
   return studentId
 }
@@ -27,8 +27,8 @@ export const getMyInvoices = asyncHandler(async (req, res) => {
   const studentId = requireStudentId(req)
 
   const result = await StudentInvoiceService.getMyInvoices(studentId, {
-    status:       req.query.status       as InvoiceStatus | undefined,
-    billingMonth: req.query.billingMonth as string | undefined,
+    status:       req.query.status       as InvoiceStatus,
+    billingMonth: req.query.billingMonth as string,
     page:         Number(req.query.page)  || 1,
     limit:        Number(req.query.limit) || 10,
   })
@@ -52,6 +52,6 @@ export const getMyInvoiceSummary = asyncHandler(async (req, res) => {
  */
 export const getMyInvoiceById = asyncHandler(async (req, res) => {
   const studentId = requireStudentId(req)
-  const invoice   = await StudentInvoiceService.getMyInvoiceById(req.params.id, studentId)
+  const invoice   = await StudentInvoiceService.getMyInvoiceById(req.params.id as string, studentId)
   res.status(200).json({ success: true, data: invoice })
 })

@@ -148,8 +148,8 @@ export const MessSubscriptionService = {
    * Stats — cached for 5 minutes.
    * Invalidated on every write so counts don't lag after status transitions.
    */
-  async getStats() {
-    const cached = await getCache<ReturnType<typeof MessSubscriptionService.getStats>>(CACHE.stats)
+  async getStats(){
+    const cached:any = await getCache<ReturnType<typeof MessSubscriptionService.getStats>>(CACHE.stats)
     if (cached) return cached
 
     const [statusBreakdown, planBreakdown, revenueStats] = await Promise.all([
@@ -198,7 +198,7 @@ export const MessSubscriptionService = {
     if (existing) throw HttpError.conflict("A subscription already exists for this student.")
 
     const planType  = dto.planType ?? "Monthly"
-    const validUntil = dto.validUntil ?? addDays(new Date(), PLAN_DURATION_DAYS[planType])
+    const validUntil = dto.validUntil ?? addDays(new Date(), PLAN_DURATION_DAYS[planType] as number)
 
     const sub = await MessSubscription.create({ student: dto.student, planType, monthlyFee: dto.monthlyFee, validUntil })
 

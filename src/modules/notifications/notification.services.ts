@@ -1,4 +1,6 @@
-import NotificationModel, { NotificationType, NotificationAudience } from "./notificaton.model.js"
+import { DeleteResult, FlattenMaps } from "mongoose"
+import { INotification, NotificationAudience, NotificationType } from "./notification.types.js"
+import NotificationModel from "./notificaton.model.js"
 import { getIO, ROOMS } from "./socket.server.js"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -19,9 +21,27 @@ export interface NotificationFilters {
   page?:     number
   limit?:    number
 }
+export interface NotificationService{
+create(dto:CreateNotificationDTO):Promise<INotification>
+getAdminNotifications(filters:NotificationFilters):Promise<{
+  data:INotification
+  total:number
+  page:number
+  limit:number
+  totalPages:number
+  unreadCount:number
+}>
+getStudentNotifications(userId: string, filters: NotificationFilters):any
+markAllAdminRead():any
+markOneRead(id:string):any
+markAllStudentRead(userId:string):any
+deleteOne(id:string):Promise<null>
+clearAllAdmin():Promise<DeleteResult>
+clearAllStudent(userId:string):Promise<DeleteResult>
+}
 
 // ─── Service ──────────────────────────────────────────────────────────────────
-export const NotificationService = {
+export const NotificationService:NotificationService = {
 
   // ── CREATE + EMIT ──────────────────────────────────────────────────────────
 
@@ -73,7 +93,14 @@ export const NotificationService = {
   // ── READ ───────────────────────────────────────────────────────────────────
 
   /** Admin: get all admin-audience notifications, newest first */
-  async getAdminNotifications(filters: NotificationFilters) {
+  async getAdminNotifications(filters: NotificationFilters):Promise<{
+  data:any
+  total:number
+  page:number
+  limit:number
+  totalPages:number
+  unreadCount:number
+}> {
     const { isRead, type, page = 1, limit = 20 } = filters
 
     const query: Record<string, any> = { audience: "admin" }

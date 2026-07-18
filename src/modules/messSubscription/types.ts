@@ -29,11 +29,13 @@ export interface UpdateSubscriptionDTO {
 }
 
 export interface SubscriptionFilters {
-  status?: SubscriptionStatus;
-  planType?: PlanType;
-  expiringBefore?: Date;
-  page?: number;
-  limit?: number;
+  status?: SubscriptionStatus|undefined;
+  planType?: PlanType|undefined;
+  expiringBefore?: Date|undefined;
+  page?: number|undefined;
+  limit?: number|undefined;
+  sortBy?:string|undefined
+  sortOrder?:string|undefined
 }
 
 export interface PaginatedResult<T> {

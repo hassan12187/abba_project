@@ -27,7 +27,7 @@ export const getBlocksOverview = asyncHandler(async (_req, res) => {
 /** GET /blocks */
 export const getAllBlocks = asyncHandler(async (req, res) => {
   const filters: BlockFilters = {
-    status:    req.query.status    as BlockFilters["status"],
+    status:    req.query.status as BlockFilters["status"],
     search:    req.query.search    as string,
     page:      Number(req.query.page)  || 1,
     limit:     Number(req.query.limit) || 10,
@@ -40,13 +40,13 @@ export const getAllBlocks = asyncHandler(async (req, res) => {
 
 /** GET /blocks/:id */
 export const getBlockById = asyncHandler(async (req, res) => {
-  const block = await BlockService.getById(req.params.id)
+  const block = await BlockService.getById(req.params.id as string)
   res.status(200).json({ success: true, data: block })
 })
 
 /** GET /blocks/:id/summary */
 export const getBlockSummary = asyncHandler(async (req, res) => {
-  const summary = await BlockService.getWithSummary(req.params.id)
+  const summary = await BlockService.getWithSummary(req.params.id as string)
   res.status(200).json({ success: true, data: summary })
 })
 
@@ -62,7 +62,7 @@ export const createBlock = asyncHandler(async (req, res) => {
 
 /** PATCH /blocks/:id */
 export const updateBlock = asyncHandler(async (req, res) => {
-  const block = await BlockService.update(req.params.id, req.body)
+  const block = await BlockService.update(req.params.id as string, req.body)
   res.status(200).json({
     success: true,
     message: "Block updated successfully.",
@@ -72,7 +72,7 @@ export const updateBlock = asyncHandler(async (req, res) => {
 
 /** DELETE /blocks/:id */
 export const deleteBlock = asyncHandler(async (req, res) => {
-  await BlockService.delete(req.params.id)
+  await BlockService.delete(req.params.id as string)
   res.status(200).json({ success: true, message: "Block deleted successfully." })
 })
 
@@ -106,14 +106,14 @@ export const getAllRooms = asyncHandler(async (req, res) => {
 
 /** GET /rooms/:id */
 export const getRoomById = asyncHandler(async (req, res) => {
-  const room = await RoomService.getById(req.params.id)
+  const room = await RoomService.getById(req.params.id as string)
   res.status(200).json({ success: true, data: room })
 })
 
 /** GET /blocks/:blockId/rooms — rooms within a specific block */
 export const getRoomsByBlock = asyncHandler(async (req, res) => {
   const availableOnly = req.query.available === "true"
-  const rooms = await RoomService.getByBlock(req.params.blockId, availableOnly)
+  const rooms = await RoomService.getByBlock(req.params.blockId as string, availableOnly)
   res.status(200).json({ success: true, data: rooms })
 })
 
@@ -129,7 +129,7 @@ export const createRoom = asyncHandler(async (req, res) => {
 
 /** POST /blocks/:blockId/rooms/bulk */
 export const bulkCreateRooms = asyncHandler(async (req, res) => {
-  const result = await RoomService.bulkCreate(req.params.blockId, req.body.rooms)
+  const result = await RoomService.bulkCreate(req.params.blockId as string, req.body.rooms)
   res.status(201).json({
     success: true,
     message: `${result.created} room(s) created.${result.skipped.length ? ` Skipped (already exist): ${result.skipped.join(", ")}.` : ""}`,
@@ -139,7 +139,7 @@ export const bulkCreateRooms = asyncHandler(async (req, res) => {
 
 /** PATCH /rooms/:id */
 export const updateRoom = asyncHandler(async (req, res) => {
-  const room = await RoomService.update(req.params.id, req.body)
+  const room = await RoomService.update(req.params.id as string, req.body)
   res.status(200).json({
     success: true,
     message: "Room updated successfully.",
@@ -149,7 +149,7 @@ export const updateRoom = asyncHandler(async (req, res) => {
 
 /** PATCH /rooms/:id/status */
 export const updateRoomStatus = asyncHandler(async (req, res) => {
-  const room = await RoomService.updateStatus(req.params.id, req.body)
+  const room = await RoomService.updateStatus(req.params.id as string, req.body)
   res.status(200).json({
     success: true,
     message: `Room status changed to '${req.body.status}'.`,
@@ -159,6 +159,6 @@ export const updateRoomStatus = asyncHandler(async (req, res) => {
 
 /** DELETE /rooms/:id */
 export const deleteRoom = asyncHandler(async (req, res) => {
-  await RoomService.delete(req.params.id)
+  await RoomService.delete(req.params.id as string)
   res.status(200).json({ success: true, message: "Room deleted successfully." })
 })

@@ -41,7 +41,7 @@ const getAllExpenses = asyncHandler(async (req, res) => {
 
 /** GET /expenses/:id */
 const getExpenseById = asyncHandler(async (req, res) => {
-  const data = await ExpenseService.getById(req.params.id)
+  const data = await ExpenseService.getById(req.params.id as string)
   res.status(200).json({ success: true, data })
 })
 
@@ -57,13 +57,13 @@ const createExpense = asyncHandler(async (req, res) => {
 
 /** PATCH /expenses/:id */
 const updateExpense = asyncHandler(async (req, res) => {
-  const data = await ExpenseService.update(req.params.id, req.body)
+  const data = await ExpenseService.update(req.params.id as string, req.body)
   res.status(200).json({ success: true, message: "Expense updated.", data })
 })
 
 /** DELETE /expenses/:id */
 const deleteExpense = asyncHandler(async (req, res) => {
-  await ExpenseService.delete(req.params.id)
+  await ExpenseService.delete(req.params.id as string)
   res.status(200).json({ success: true, message: "Expense deleted." })
 })
 

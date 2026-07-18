@@ -63,7 +63,7 @@ export const getMenuByDay = asyncHandler(async (req, res) => {
  * Get menu by MongoDB ID.
  */
 export const getMenuById = asyncHandler(async (req, res) => {
-  const menu = await MessMenuService.getById(req.params.id)
+  const menu = await MessMenuService.getById(req.params.id as string)
   res.status(200).json({ success: true, data: menu })
 })
 
@@ -72,7 +72,7 @@ export const getMenuById = asyncHandler(async (req, res) => {
  * Update one or more meals (items + timings) for a day.
  */
 export const updateMenu = asyncHandler(async (req, res) => {
-  const menu = await MessMenuService.update(req.params.id, req.body)
+  const menu = await MessMenuService.update(req.params.id as string, req.body)
   res.status(200).json({
     success: true,
     message: "Menu updated successfully.",
@@ -86,7 +86,7 @@ export const updateMenu = asyncHandler(async (req, res) => {
  */
 export const updateMealItems = asyncHandler(async (req, res) => {
   const menu = await MessMenuService.updateMealItems(
-    req.params.id,
+    req.params.id as string,
     req.params.mealType as any,
     req.body
   )
@@ -103,7 +103,7 @@ export const updateMealItems = asyncHandler(async (req, res) => {
  */
 export const updateMealTiming = asyncHandler(async (req, res) => {
   const menu = await MessMenuService.updateMealTiming(
-    req.params.id,
+    req.params.id as string,
     req.params.mealType as any,
     req.body
   )
@@ -152,7 +152,7 @@ export const deleteAllMenus = asyncHandler(async (req, res) => {
  * Delete a single day's menu.
  */
 export const deleteMenu = asyncHandler(async (req, res) => {
-  await MessMenuService.delete(req.params.id)
+  await MessMenuService.delete(req.params.id as string)
   res.status(200).json({
     success: true,
     message: "Menu deleted successfully.",

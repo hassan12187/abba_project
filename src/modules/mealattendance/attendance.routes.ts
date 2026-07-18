@@ -39,7 +39,7 @@ const getAll = asyncHandler(async (req, res) => {
 
 /** GET /attendance/:id */
 const getById = asyncHandler(async (req, res) => {
-  const data = await AttendanceService.getById(req.params.id)
+  const data = await AttendanceService.getById(req.params.id as string)
   res.status(200).json({ success: true, data })
 })
 
@@ -64,7 +64,7 @@ const getDailySummary = asyncHandler(async (req, res) => {
  */
 const getStudentSummary = asyncHandler(async (req, res) => {
   const { from, to } = req.query as any
-  const data = await AttendanceService.getStudentSummary(req.params.studentId, from, to)
+  const data = await AttendanceService.getStudentSummary(req.params.studentId as string, from, to)
   res.status(200).json({ success: true, data })
 })
 
@@ -94,13 +94,13 @@ const bulkMark = asyncHandler(async (req, res) => {
 
 /** PATCH /attendance/:id */
 const updateAttendance = asyncHandler(async (req, res) => {
-  const data = await AttendanceService.update(req.params.id, req.body)
+  const data = await AttendanceService.update(req.params.id as string, req.body)
   res.status(200).json({ success: true, message: "Attendance updated.", data })
 })
 
 /** DELETE /attendance/:id */
 const deleteAttendance = asyncHandler(async (req, res) => {
-  await AttendanceService.delete(req.params.id)
+  await AttendanceService.delete(req.params.id as string)
   res.status(200).json({ success: true, message: "Attendance record deleted." })
 })
 

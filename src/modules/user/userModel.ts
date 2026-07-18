@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose"
+import { Document, Model, Schema, Types, model } from "mongoose"
 import { hash, compare }  from "bcrypt"
 
 export const USER_ROLES    = ["ADMIN", "STUDENT", "SUPERADMIN"] as const
@@ -6,8 +6,37 @@ export const USER_STATUSES = ["ACTIVE", "DISCONTINUED"]         as const
 
 export type UserRole   = (typeof USER_ROLES)[number]
 export type UserStatus = (typeof USER_STATUSES)[number]
+export interface IUser extends Document{
+  _id:Types.ObjectId
+  username:string
+  email: string
+  phone: string
+  password:string
+  applicationId:Types.ObjectId | null
+  avatar: string| null
+  role:UserRole
+  status:UserStatus
+  isFirstLogin: boolean
+  lastLoginAt: Date | null
+  refreshToken: string | null
+  passwordResetCode: string | null
+  passwordResetExpires: Date | null
+  failedLoginAttempts: number
+  lockedUntil: Date | null
+  createdAt: Date
+  updatedAt: Date
+};
 
-const userSchema = new Schema(
+export interface IUserMethods {
+  comparePassword(plain:string):Promise<boolean>
+  isLocked():boolean
+  registerFailedLogin():Promise<void>
+  clearFailedLogins():Promise<void>
+}
+
+type UserModelType=Model<IUser,{},IUserMethods>
+
+const userSchema = new Schema<IUser,UserModelType,IUserMethods>(
   {
     username: {
       type:      String,
@@ -65,7 +94,7 @@ const userSchema = new Schema(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform(_doc, ret) {
+      transform(_doc, ret:Record<string,any>) {
         delete ret.password; delete ret.refreshToken
         delete ret.passwordResetCode; delete ret.passwordResetExpires
         delete ret.failedLoginAttempts; delete ret.lockedUntil
@@ -111,5 +140,5 @@ userSchema.methods.clearFailedLogins = async function (): Promise<void> {
   }
 }
 
-const User = model("user", userSchema)
+const User = model<IUser,UserModelType>("user", userSchema)
 export default User

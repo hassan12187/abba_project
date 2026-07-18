@@ -13,6 +13,10 @@ export class HttpError extends Error {
     Error.captureStackTrace(this, this.constructor);
   }
 
+  static unprocessable(message:string){
+    return new HttpError(message,402)
+  };
+
   static badRequest(message: string) {
     return new HttpError(message, 400);
   }

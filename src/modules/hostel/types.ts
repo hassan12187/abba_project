@@ -1,4 +1,4 @@
-import { Types } from "mongoose"
+import { Document, Types } from "mongoose"
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 export type BlockStatus  = "under construction" | "ready" | "maintenance"
@@ -16,7 +16,7 @@ export interface IHostelBlock {
   updatedAt:   Date
 }
 
-export interface IRoom {
+export interface IRoom extends Document {
   _id:                Types.ObjectId
   room_no:            string
   type:               RoomType
@@ -70,24 +70,24 @@ export interface UpdateRoomStatusDTO {
 
 // ─── Filters ──────────────────────────────────────────────────────────────────
 export interface BlockFilters {
-  status?:    BlockStatus
-  search?:    string       // matches block_no or description
-  page?:      number
-  limit?:     number
-  sortBy?:    "block_no" | "createdAt"
-  sortOrder?: "asc" | "desc"
+  status?:    BlockStatus|undefined
+  search?:    string |undefined      // matches block_no or description
+  page?:      number |undefined
+  limit?:     number|undefined
+  sortBy?:    "block_no" | "createdAt"|undefined
+  sortOrder?: "asc" | "desc"|undefined
 }
 
 export interface RoomFilters {
-  block_id?:  string
-  type?:      RoomType
-  status?:    RoomStatus
-  available?: boolean     // only rooms with available_beds > 0
-  search?:    string      // matches room_no
-  page?:      number
-  limit?:     number
-  sortBy?:    "room_no" | "fees" | "capacity"
-  sortOrder?: "asc" | "desc"
+  block_id?:  string |undefined
+  type?:      RoomType|undefined
+  status?:    RoomStatus|undefined
+  available?: boolean    |undefined // only rooms with available_beds > 0
+  search?:    string    |undefined  // matches room_no
+  page?:      number|undefined
+  limit?:     number|undefined
+  sortBy?:    "room_no" | "fees" | "capacity"|undefined
+  sortOrder?: "asc" | "desc"|undefined
 }
 
 export interface PaginatedResult<T> {

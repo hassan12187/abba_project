@@ -1,4 +1,4 @@
-import MessMenu from "./MessMenu.js"
+ import MessMenu from "./MessMenu.js"
 import redis     from "../../services/Redis.js"
 import {
   IMessMenu, IMeal, DayOfWeek, MealType,
@@ -7,6 +7,7 @@ import {
   DAYS_OF_WEEK, MEAL_TYPES,
 } from "./types.js"
 import { HttpError } from "../../utils/errors.js"
+import { FlattenMaps } from "mongoose"
 
 // ─── Cache keys & TTLs ────────────────────────────────────────────────────────
 // All keys live under the "menu:" namespace so a single invalidateAll() call
@@ -74,8 +75,11 @@ function getCurrentDay(timezone = "Asia/Karachi"): DayOfWeek {
 }
 
 function toMinutes(time: string): number {
-  const [hhmm, period] = time.split(" ")
-  let [h, m] = hhmm.split(":").map(Number)
+  const [hhmm, period] = time.split(" ");
+  if(!hhmm) return 0;
+  let [h, m] = hhmm?.split(":").map(Number);
+  if (h ==undefined)return 0;
+  if (m ==undefined)return 0;
   if (period === "PM" && h !== 12) h += 12
   if (period === "AM" && h === 12) h  = 0
   return h * 60 + m
@@ -116,8 +120,8 @@ export const MessMenuService = {
     const cached = await getCache<WeeklyMenuResponse>(CACHE.weekly)
     if (cached) return cached
 
-    const menus = await MessMenu.find().lean()
-    const byDay = Object.fromEntries(menus.map((m) => [m.dayOfWeek, m]))
+    const menus:IMessMenu | FlattenMaps<any> = await MessMenu.find().lean()
+    const byDay = Object.fromEntries(menus.map((m:IMessMenu) => [m.dayOfWeek, m]))
     const result = DAYS_OF_WEEK.map((d) => byDay[d]).filter(Boolean) as IMessMenu[]
 
     await setCache(CACHE.weekly, result, TTL.weekly)
@@ -145,7 +149,7 @@ export const MessMenuService = {
       breakfast:   menu.breakfast as IMeal,
       lunch:       menu.lunch     as IMeal,
       dinner:      menu.dinner    as IMeal,
-      currentMeal: getActiveMeal(menu as IMessMenu, timezone),
+      currentMeal: getActiveMeal(menu as unknown as IMessMenu, timezone),
     }
 
     await setCache(cacheKey, result, TTL.today)
@@ -163,7 +167,7 @@ export const MessMenuService = {
     if (!menu) throw HttpError.notFound(`No menu found for '${day}'.`)
 
     await setCache(CACHE.day(day), menu, TTL.day)
-    return menu as IMessMenu
+    return menu as unknown as IMessMenu
   },
 
   /**
@@ -177,7 +181,7 @@ export const MessMenuService = {
     if (!menu) throw HttpError.notFound(`Menu with id '${id}' not found.`)
 
     await setCache(CACHE.byId(id), menu, TTL.byId)
-    return menu as IMessMenu
+    return menu as unknown as IMessMenu
   },
 
   /**
@@ -210,7 +214,7 @@ export const MessMenuService = {
     })
 
     await invalidateAll()
-    return menu.toObject() as IMessMenu
+    return menu.toObject() as unknown as IMessMenu
   },
 
   async update(id: string, dto: UpdateMenuDTO): Promise<IMessMenu> {
@@ -231,7 +235,7 @@ export const MessMenuService = {
     const updated = await MessMenu.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true }).lean()
 
     await invalidateAll()
-    return updated as IMessMenu
+    return updated as unknown as IMessMenu
   },
 
   async updateMealItems(id: string, mealType: MealType, dto: UpdateMealItemsDTO): Promise<IMessMenu> {
@@ -257,7 +261,7 @@ export const MessMenuService = {
     await menu.save()
 
     await invalidateAll()
-    return menu.toObject() as IMessMenu
+    return menu.toObject() as unknown as IMessMenu
   },
 
   async updateMealTiming(id: string, mealType: MealType, dto: UpdateMealTimingDTO): Promise<IMessMenu> {
@@ -275,7 +279,7 @@ export const MessMenuService = {
     await menu.save()
 
     await invalidateAll()
-    return menu.toObject() as IMessMenu
+    return menu.toObject() as unknown as IMessMenu
   },
 
   async bulkUpsert(days: BulkUpsertDTO): Promise<{ upsertedCount: number; days: DayOfWeek[] }> {

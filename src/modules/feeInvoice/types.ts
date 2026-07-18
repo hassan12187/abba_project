@@ -119,7 +119,7 @@ export interface InvoiceListItem {
 export interface StudentLookupResult {
   student_id:      Types.ObjectId
   student_name:    string
-  student_roll_no: number
+  student_roll_no: string
   room_id:         Types.ObjectId | null
   room_no:         string
 }

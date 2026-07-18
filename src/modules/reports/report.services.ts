@@ -20,10 +20,10 @@ function buildDateRange(filters: ReportFilters): { from: Date; to: Date } {
     }
   }
   if (filters.month) {
-    const [year, month] = filters.month.split("-").map(Number)
+    const [year, month] = filters.month.split("-").map(Number);
     return {
-      from: startOfMonth(year, month - 1),
-      to:   endOfMonth(year, month - 1),
+      from: startOfMonth(year as number, month || 1),
+      to:   endOfMonth(year as number, month || 1 - 1),
     }
   }
   // Default: current month
@@ -177,10 +177,10 @@ export const ReportService = {
       recentActivity: {
         payments: recentPayments.map((p) => ({
           _id:           p._id,
-          student_name:  p.student_name,
+          student_name:  p.student_id,
           invoiceNumber: p.invoiceNumber,
           totalAmount:   p.totalPaid,
-          paymentDate:   p.createdAt,
+          paymentDate:   p.issueDate,
           paymentMethod: p.generatedBy ?? "Manual",
         })),
         expenses: recentExpenses.map((e) => ({

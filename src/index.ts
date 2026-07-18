@@ -23,7 +23,7 @@ import { studentRouter }       from "./modules/student/student.routes.js"
 import { reportRouter }        from "./modules/reports/report.routes.js"
 import { expenseRouter }       from "./modules/expense/expenseRoutes.js"
 import { paymentRouter }       from "./modules/payment/payment.routes.js"
-import { dashboardRouter }     from "./modules/dashboard/dashboard.routes.js"
+// import { dashboardRouter }     from "./modules/dashboard/dashboard.routes.js"
 import applicationRoute        from "./modules/student.application/studentapplication.routes.js"
 import { blockRouter, roomRouter } from "./modules/hostel/hostel.routes.js"
 import { complaintRouter }     from "./modules/complaint/complaint.routes.js"
@@ -32,7 +32,6 @@ import feeInvoiceRouter        from "./modules/feeInvoice/feeinvoice.routes.js"
 import subscriptionRouter      from "./modules/messSubscription/messSubscription.routes.js"
 import messMenuRouter          from "./modules/messmenu/messmenu.routes.js"
 import { publicApplicationRouter } from "./modules/student.application/publicApplication.routes.js"
-// import messSubscriptionModel from "./modules/messSubscription/messSubscription.model.js"
 
 // ── Notification routers (new) ────────────────────────────────────────────────
 import {

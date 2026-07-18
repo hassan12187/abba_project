@@ -6,8 +6,11 @@ import redis              from "../../services/Redis.js"
 import {
   CreatePaymentDTO, PaymentFilters,
   PaginatedPayments, PopulatedPayment,
+  IPayment,
+  IPaymentInvoice,
 } from "./payment.types.js"
 import { HttpError } from "../../utils/errors.js"
+import { IFeeInvoice } from "../feeInvoice/types.js"
 
 // ─── Cache config ─────────────────────────────────────────────────────────────
 //
@@ -267,17 +270,17 @@ export const PaymentService = {
         if (inv.isLocked) {
           throw HttpError.locked(`Invoice ${inv._id} is locked.`)
         }
-        if (inv.status === "Paid") {
+        if (inv.status === "paid") {
           throw HttpError.badRequest(`Invoice ${inv._id} is already fully paid.`)
         }
-        if (inv.status === "Cancelled") {
+        if (inv.status === "cancelled") {
           throw HttpError.badRequest(`Invoice ${inv._id} has been cancelled.`)
         }
       }
 
       // Guard: prevent over-payment per invoice
       for (const allocation of dto.invoices) {
-        const inv = invoices.find((i) => i._id.toString() === allocation.invoiceId)
+        const inv = invoices.find((i:any) => i._id.toString() === allocation.invoiceId)
         if (inv && allocation.amountApplied > inv.balanceDue + 0.01) {
           throw HttpError.badRequest(
             `Payment of ₹${allocation.amountApplied} for invoice ${allocation.invoiceId} ` +
@@ -306,7 +309,7 @@ export const PaymentService = {
 
       // Update each invoice's paid amount, balance, and status
       for (const allocation of dto.invoices) {
-        const inv        = invoices.find((i) => i._id.toString() === allocation.invoiceId)!
+        const inv        = invoices.find((i:any) => i?._id.toString() === allocation.invoiceId)!
         const newBalance = Math.max(
           0, Math.round((inv.balanceDue - allocation.amountApplied) * 100) / 100
         )
@@ -320,7 +323,7 @@ export const PaymentService = {
           {
             $inc:  { totalPaid: allocation.amountApplied },
             $set:  { balanceDue: newBalance, status: newStatus },
-            $push: { payments: payment._id },
+            $push: { payments: payment?._id },
           },
           { session }
         )
@@ -336,7 +339,7 @@ export const PaymentService = {
       )
 
       // Return the fully populated payment
-      return PaymentService.getById(payment._id.toString())
+      return PaymentService.getById(payment?._id.toString() as string)
     } catch (err) {
       await session.abortTransaction()
       throw err

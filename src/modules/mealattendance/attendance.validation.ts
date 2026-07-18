@@ -58,8 +58,8 @@ export const attendanceFiltersSchema = z.object({
       mealType:  mealTypeEnum.optional(),
       status:    statusEnum.optional(),
       student:   objectId.optional(),
-      page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-      limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(200)).optional().default("50"),
+      page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+      limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(200)).optional().default(50),
       sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
     })
     .refine(

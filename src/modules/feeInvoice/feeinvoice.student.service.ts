@@ -98,7 +98,7 @@ export const StudentInvoiceService = {
       .populate("payments", "amount paymentMethod createdAt note")
       .lean({ virtuals: true })
 
-    if (!invoice) {
+    if (!invoice || !invoice.student_id) {
       throw HttpError.notFound(`Invoice not found.`)
     }
 
@@ -107,7 +107,7 @@ export const StudentInvoiceService = {
       throw HttpError.forbidden("You do not have access to this invoice.")
     }
 
-    return invoice as IFeeInvoice
+    return invoice as unknown as IFeeInvoice;
   },
 
   /**

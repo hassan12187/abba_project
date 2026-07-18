@@ -28,13 +28,13 @@ export const createComplaintSchema = z.object({
     room_id:     objectId,
 
     title: z
-      .string({ required_error: "title is required" })
+      .string({ error: "title is required" })
       .min(5,   "title must be at least 5 characters")
       .max(150, "title must be at most 150 characters")
       .trim(),
 
     description: z
-      .string({ required_error: "description is required" })
+      .string({ error: "description is required" })
       .min(10,   "description must be at least 10 characters")
       .max(2000, "description must be at most 2000 characters")
       .trim(),
@@ -76,11 +76,7 @@ export const updateStatusSchema = z.object({
       if (!d.current_status) return true   // skip check if not injected yet
       const allowed = ALLOWED_TRANSITIONS[d.current_status] ?? []
       return allowed.includes(d.status)
-    },
-    (d) => ({
-      message: `Cannot transition from "${d.current_status}" to "${d.status}". ` +
-               `Allowed: ${(ALLOWED_TRANSITIONS[d.current_status ?? ""] ?? []).join(", ") || "none"}.`,
-    })
+    }
   ),
 })
 
@@ -94,8 +90,8 @@ export const complaintFiltersSchema = z.object({
       search:    z.string().max(200).optional(),
       from:      isoDate.optional(),
       to:        isoDate.optional(),
-      page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-      limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("15"),
+      page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+      limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(15),
       sortBy:    z.enum(["createdAt", "updatedAt", "priority"]).optional().default("createdAt"),
       sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
     })

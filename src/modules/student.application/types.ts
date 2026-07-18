@@ -9,7 +9,7 @@ export interface IStudentApplication {
   _id: Types.ObjectId
   student_name: string
   student_email: string
-  student_roll_no?: number
+  student_roll_no?: string
   father_name: string
   student_cellphone?: string
   student_reg_no?: string
@@ -116,18 +116,18 @@ export interface AssignRoomDTO {
 
 // ─── Query / pagination ───────────────────────────────────────────────────────
 export interface ApplicationFilters {
-  status?: ApplicationStatus
-  gender?: Gender
-  city?: string
-  province?: string
-  academic_year?: string
-  messEnabled?: boolean
-  isActive?: boolean
-  search?: string      // matches name, email, roll no, reg no
-  page?: number
-  limit?: number
-  sortBy?: "application_submit_date" | "student_name" | "createdAt"
-  sortOrder?: "asc" | "desc"
+  status: ApplicationStatus
+  gender: Gender
+  city: string
+  province: string
+  academic_year: string
+  messEnabled: boolean
+  isActive: boolean
+  search: string      // matches name, email, roll no, reg no
+  page: number
+  limit: number
+  sortBy: "application_submit_date" | "student_name" | "createdAt"
+  sortOrder: "asc" | "desc"
 }
 
 export interface PaginatedResult<T> {

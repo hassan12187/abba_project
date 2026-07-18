@@ -13,8 +13,8 @@ export const myInvoiceFiltersSchema = z.object({
   query: z.object({
     status:       statusEnum.optional(),
     billingMonth: billingMonth.optional(),
-    page:         z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:        z.string().transform(Number).pipe(z.number().int().min(1).max(50)).optional().default("10"),
+    page:         z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:        z.string().transform(Number).pipe(z.number().int().min(1).max(50)).optional().default(10),
   }),
 })
 

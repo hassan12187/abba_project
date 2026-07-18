@@ -1,27 +1,11 @@
-import { Schema, model } from "mongoose"
+import { Model, Schema, model } from "mongoose"
+import { INotification, NOTIFICATION_AUDIENCES, NOTIFICATION_TYPES } from "./notification.types.js"
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
-export const NOTIFICATION_TYPES = [
-  "new_application",      // student submitted application
-  "application_accepted", // admin accepted application
-  "application_approved", // admin fully approved
-  "application_rejected", // admin rejected
-  "payment_received",     // fee payment collected
-  "complaint_submitted",  // student filed complaint
-  "complaint_resolved",   // complaint marked resolved
-  "invoice_generated",    // new invoice created for student
-  "subscription_expiring",// mess subscription expiring soon
-  "room_assigned",        // room assigned to student
-] as const
 
-export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
-
-// Who should see this notification
-export const NOTIFICATION_AUDIENCES = ["admin", "student", "all"] as const
-export type NotificationAudience = (typeof NOTIFICATION_AUDIENCES)[number]
+type INoticationModel = Model<INotification,{},{}>
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
-const notificationSchema = new Schema(
+const notificationSchema = new Schema<INotification,INoticationModel,{}>(
   {
     type: {
       type:     String,
@@ -105,5 +89,5 @@ notificationSchema.index(
   { expireAfterSeconds: 30 * 24 * 60 * 60 }
 )
 
-const NotificationModel = model("notification", notificationSchema)
+const NotificationModel = model<INotification,INoticationModel>("notification", notificationSchema)
 export default NotificationModel

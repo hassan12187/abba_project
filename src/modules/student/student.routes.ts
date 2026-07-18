@@ -7,7 +7,8 @@ import studentApplicationModel     from "../student.application/studentApplicati
 import { validate }                from "../../middleware/validate.middleware.js"
 import { z }                       from "zod"
 import { HttpError }               from "../../utils/errors.js"
-import MessMenuService from "../messMenu/messmenu.services.js"
+import MessSubscription from "../messSubscription/MessSubscription.model.js";
+import MessMenuService from "../messmenu/messmenu.services.js";
 
 // ─── Zod helpers ──────────────────────────────────────────────────────────────
 const objectId  = z.string().regex(/^[a-f\d]{24}$/i, "Invalid ObjectId")
@@ -65,8 +66,8 @@ studentRouter.get("/invoices", validate(z.object({
   query: z.object({
     status:       z.string().optional(),
     billingMonth: z.string().optional(),
-    page:         z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:        z.string().transform(Number).pipe(z.number().int().min(1).max(50)).optional().default("10"),
+    page:         z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:        z.string().transform(Number).pipe(z.number().int().min(1).max(50)).optional().default(10),
   }),
 })), asyncHandler(async (req, res) => {
   const { status, billingMonth, page, limit } = req.query as any
@@ -80,7 +81,8 @@ studentRouter.get("/invoices", validate(z.object({
 
 studentRouter.get("/invoices/:id", validate(z.object({ params: z.object({ id: objectId }) })),
   asyncHandler(async (req, res) => {
-    const data = await StudentInvoiceService.getMyInvoiceById(req.params.id, appId(req))
+    // if(!req.params.id)return res.status(404).json({message:"Invoice ID Not Found."});
+    const data = await StudentInvoiceService.getMyInvoiceById(req.params.id as string, appId(req))
     res.status(200).json({ success: true, data })
   })
 )
@@ -95,8 +97,8 @@ studentRouter.get("/complaints", validate(z.object({
   query: z.object({
     status:    z.string().optional(),
     category:  z.string().optional(),
-    page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(50)).optional().default("10"),
+    page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(50)).optional().default(10),
     sortOrder: z.enum(["asc","desc"]).optional().default("desc"),
   }),
 })), asyncHandler(async (req, res) => {
@@ -110,12 +112,12 @@ studentRouter.get("/complaints", validate(z.object({
     limit: Number(limit) || 10,
     sortOrder,
   } as any)
-  res.status(200).json({ success: true, ...result })
+  res.status(200).json({  ...result })
 }))
 
 studentRouter.get("/complaints/:id", validate(z.object({ params: z.object({ id: objectId }) })),
   asyncHandler(async (req, res) => {
-    const complaint = await ComplaintService.getById(req.params.id)
+    const complaint = await ComplaintService.getById(req.params.id as string)
     // Ownership check — student can only see their own complaint
     if ((complaint.student_id as any)?._id?.toString() !== appId(req) &&
         (complaint.student_id as any)?.toString()      !== appId(req)) {
@@ -178,8 +180,8 @@ studentRouter.get("/attendance", validate(z.object({
     to:       isoDate.optional(),
     mealType: z.enum(["Breakfast","Lunch","Dinner"]).optional(),
     status:   z.enum(["Present","Absent","Leave"]).optional(),
-    page:     z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:    z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("30"),
+    page:     z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:    z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(30),
   }),
 })), asyncHandler(async (req, res) => {
   const { date, from, to, mealType, status, page, limit } = req.query as any
@@ -189,7 +191,7 @@ studentRouter.get("/attendance", validate(z.object({
     page:  Number(page)  || 1,
     limit: Number(limit) || 30,
   })
-  res.status(200).json({ success: true, ...result })
+  res.status(200).json({...result })
 }))
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -198,7 +200,6 @@ studentRouter.get("/attendance", validate(z.object({
 // ──────────────────────────────────────────────────────────────────────────────
 studentRouter.get("/subscription", asyncHandler(async (req, res) => {
   // Import dynamically to match the pattern used in the rest of the codebase
-  const MessSubscription = (await import("../messSubscription/messSubscription.model.js")).default
 
   const subscription = await MessSubscription
     .findOne({ student: appId(req) })
@@ -244,7 +245,7 @@ studentRouter.get("/dashboard", asyncHandler(async (req, res) => {
 
     // Active mess subscription
     (async () => {
-      const MessSubscription = (await import("../messSubscription/MessSubscription.model.js")).default
+      // const MessSubscription = (await import("../messSubscription/MessSubscription.model.js")).default
       return MessSubscription.findOne({ student: studentId, status: "Active" })
         .select("planType monthlyFee validUntil status")
         .lean()
@@ -284,7 +285,7 @@ studentRouter.get("/mess-menu/today", asyncHandler(async (_req, res) => {
 studentRouter.get("/mess-menu/:day", asyncHandler(async (req, res) => {
   const { day } = req.params
   const valid = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
-  if (!valid.includes(day)) {
+  if (!valid.includes(day as string)) {
     res.status(400).json({ success:false, message:`Invalid day: ${day}. Must be one of ${valid.join(", ")}` })
     return
   }

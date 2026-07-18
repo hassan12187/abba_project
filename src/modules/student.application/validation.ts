@@ -20,19 +20,19 @@ const dobSchema   = z
 export const createApplicationSchema = z.object({
   body: z.object({
     student_name: z
-      .string({ required_error: "Student name is required" })
+      .string("Student name is required" )
       .min(3, "Must be at least 3 characters")
       .max(100, "Must be at most 100 characters")  // ← FIX 1: was 30, too short for full names
       .trim(),
 
     student_email: z
-      .string({ required_error: "Email is required" })
+      .string( "Email is required" )
       .email("Must be a valid email address")
       .toLowerCase()
       .trim(),
 
     father_name: z
-      .string({ required_error: "Father name is required" })
+      .string( "Father name is required" )
       .min(3, "Must be at least 3 characters")
       .max(100, "Must be at most 100 characters")  // ← FIX 1: same — 30 too short
       .trim(),
@@ -171,8 +171,8 @@ export const applicationFiltersSchema = z.object({
     messEnabled:   z.enum(["true","false"]).transform(v => v === "true").optional(),
     isActive:      z.enum(["true","false"]).transform(v => v === "true").optional(),
     search:        z.string().max(100).optional(),
-    page:          z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:         z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("10"),
+    page:          z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:         z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(10),
     sortBy:        z.enum(["application_submit_date","student_name","createdAt"]).optional().default("createdAt"),
     sortOrder:     z.enum(["asc","desc"]).optional().default("desc"),
   }),

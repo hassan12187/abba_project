@@ -15,7 +15,7 @@ export const createPaymentSchema = z.object({
         z.object({
           invoiceId:     objectId,
           amountApplied: z
-            .number({ invalid_type_error: "amountApplied must be a number" })
+            .number({ error: "amountApplied must be a number" })
             .positive("amountApplied must be greater than 0")
             .transform((v) => Math.round(v * 100) / 100),
         })
@@ -45,8 +45,8 @@ export const paymentFiltersSchema = z.object({
       toDate:          isoDate.optional(),
       paymentMethod:   paymentMethodEnum.optional(),
       paymentStatus:   paymentStatusEnum.optional(),
-      page:            z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-      limit:           z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("10"),
+      page:            z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+      limit:           z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(10),
       sortBy:          z.enum(["paymentDate", "totalAmount", "createdAt"]).optional().default("paymentDate"),
       sortOrder:       z.enum(["asc", "desc"]).optional().default("desc"),
     })

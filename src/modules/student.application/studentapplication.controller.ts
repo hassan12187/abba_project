@@ -70,7 +70,7 @@ export const getAllApplications = asyncHandler(async (req, res) => {
  * Single application by ID.
  */
 export const getApplicationById = asyncHandler(async (req, res) => {
-  const application = await StudentApplicationService.getById(req.params.id)
+  const application = await StudentApplicationService.getById(req.params?.id as string)
   res.status(200).json({ success: true, data: application })
 })
 
@@ -79,7 +79,7 @@ export const getApplicationById = asyncHandler(async (req, res) => {
  * Lookup by student email (self-service / portal).
  */
 export const getApplicationByEmail = asyncHandler(async (req, res) => {
-  const application = await StudentApplicationService.getByEmail(req.params.email)
+  const application = await StudentApplicationService.getByEmail(req.params.email as string)
   res.status(200).json({ success: true, data: application })
 })
 
@@ -97,7 +97,7 @@ export const updateApplication = asyncHandler(async (req, res) => {
     if (files.cnic_image?.length)  body.cnic_image   = files.cnic_image.map((f) => f.path)
   }
 
-  const application = await StudentApplicationService.update(req.params.id, body)
+  const application = await StudentApplicationService.update(req.params.id as string, body)
   res.status(200).json({
     success: true,
     message: "Application updated successfully.",
@@ -111,7 +111,7 @@ export const updateApplication = asyncHandler(async (req, res) => {
  */
 export const updateApplicationStatus = asyncHandler(async (req, res) => {
   const application = await StudentApplicationService.updateStatus(
-    req.params.id,
+    req.params.id as string,
     req.body
   )
   res.status(200).json({
@@ -127,7 +127,7 @@ export const updateApplicationStatus = asyncHandler(async (req, res) => {
  */
 export const toggleAccess = asyncHandler(async (req, res) => {
   const application = await StudentApplicationService.toggleAccess(
-    req.params.id,
+    req.params.id as string,
     req.body
   )
   res.status(200).json({
@@ -143,7 +143,7 @@ export const toggleAccess = asyncHandler(async (req, res) => {
  */
 export const assignRoom = asyncHandler(async (req, res) => {
   const application = await StudentApplicationService.assignRoom(
-    req.params.id,
+    req.params.id as string,
     req.body
   )
   res.status(200).json({
@@ -172,7 +172,7 @@ export const bulkUpdateStatus = asyncHandler(async (req, res) => {
  * Soft delete — marks as rejected + inactive.
  */
 export const deleteApplication = asyncHandler(async (req, res) => {
-  await StudentApplicationService.softDelete(req.params.id)
+  await StudentApplicationService.softDelete(req.params.id as string)
   res.status(200).json({
     success: true,
     message: "Application removed successfully.",

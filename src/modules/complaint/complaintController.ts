@@ -1,6 +1,5 @@
 import { startSession } from "mongoose";
 import ComplainModel from "./complaint.model.js";
-import MaintenanceModel from "../../models/Maintenance.js";
 import {type Request,type Response} from "express";
 
 export const getAllComplaints=async(req:Request,res:Response)=>{
@@ -69,7 +68,6 @@ export const approveComplain=async(req:Request,res:Response)=>{
             }
             complaint.status="In Progress";
             await complaint.save({session});
-            await MaintenanceModel.create({complain:complaint._id,room:complaint.room_id,issue_description:complaint.description},{session})
             await session.commitTransaction();
     } catch (error) {
         await session.abortTransaction();

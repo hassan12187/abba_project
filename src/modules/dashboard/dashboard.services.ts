@@ -1,9 +1,7 @@
 import studentApplicationModel from "../student.application/studentApplicationModel.js"
 import roomModel               from "../hostel/room.model.js"
-import HostelBlockModel        from "../hostel/hostelBlock.model.js"
 import FeeInvoiceModel         from "../feeInvoice/FeeInvoice.js"
 import MessSubscriptionModel   from "../messSubscription/MessSubscription.model.js"
-import { HttpError }           from "../../utils/errors.js"
 
 export const DashboardService = {
 
@@ -98,6 +96,7 @@ export const DashboardService = {
             .limit(5)
             .lean(),
         ])
+        console.log(invoices);
 
         const events = [
           ...apps.map((a) => ({
@@ -108,7 +107,7 @@ export const DashboardService = {
           })),
           ...invoices.map((i) => ({
             type:    "payment" as const,
-            message: `Payment of ₹${(i.totalPaid as number).toLocaleString("en-IN")} received — ${i.student_name}`,
+            message: `Payment of ₹${(i.totalPaid as number).toLocaleString("en-IN")} received — ${i?.student_id}`,
             status:  "Paid",
             date:    (i as any).createdAt,
           })),

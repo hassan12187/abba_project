@@ -156,7 +156,7 @@ export const addInvoicePayment = async (req: Request, res: Response) => {
         
         // 2. Update status based on the math (since you can't read the virtual mid-transaction easily)
         if (result.totalPaid >= result.totalAmount) {
-            result.status = "Paid";
+            result.status = "paid";
         }
 
         const paymentRecord = new Payment({

@@ -1,4 +1,30 @@
+import { Document, Model, Types } from "mongoose";
 import {Schema,model} from "mongoose";
+
+interface LineItems {
+description:string
+amount:number
+paid:number
+};
+
+interface IFeeInvoice extends Document{
+  student_id:Types.ObjectId
+  room_id:Types.ObjectId
+  invoiceNumber:string
+  lineItems:LineItems[]
+  issueDate:Date
+  totalPaid:number
+  totalAmount:number
+  payments:[Types.ObjectId]
+  billingMonth:string
+  generatedBy:string
+  status:string
+  isLocked:boolean
+  dueDate:Date
+  balanceDue:number
+};
+
+type IFeeInvoiceModel = Model<IFeeInvoice,{},{}>;
 
 const lineItemSchema = new Schema(
   {
@@ -18,7 +44,7 @@ const lineItemSchema = new Schema(
   { _id: false }
 );
 
-const feeInvoiceSchema=new Schema({
+const feeInvoiceSchema=new Schema<IFeeInvoice,IFeeInvoiceModel,{}>({
     student_id:{
         type:Schema.Types.ObjectId,
         ref:"student_application"
@@ -89,12 +115,12 @@ feeInvoiceSchema.virtual('balanceDue').get(function (){
 
 feeInvoiceSchema.pre("save",function(next){
   if(this.totalPaid >= this.totalAmount){
-    this.status="Paid";
+    this.status="paid";
   }else if(this.totalPaid>0){
-    this.status="Partially Paid"
+    this.status="partially paid"
   };
   next();
 });
 
-const FeeInvoiceModel=model("FeeInvoice",feeInvoiceSchema);
+const FeeInvoiceModel=model<IFeeInvoice,IFeeInvoiceModel>("FeeInvoice",feeInvoiceSchema);
 export default FeeInvoiceModel;

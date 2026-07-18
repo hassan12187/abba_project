@@ -61,8 +61,8 @@ export const expenseFiltersSchema = z.object({
     category: categoryEnum.optional(),
     from:     isoDate.optional(),
     to:       isoDate.optional(),
-    page:     z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:    z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("20"),
+    page:     z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:    z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(20),
   }),
 })
 

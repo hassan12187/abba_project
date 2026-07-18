@@ -8,7 +8,7 @@ const planTypeEnum = z.enum(["Monthly", "Semester", "Pay_Per_Meal"]);
 const statusEnum = z.enum(["Active", "Cancelled", "Suspended"]);
 
 const monthlyFeeSchema = z
-  .number({ invalid_type_error: "monthlyFee must be a number" })
+  .number({ error: "monthlyFee must be a number" })
   .positive("monthlyFee must be a positive number")
   .multipleOf(0.01, "monthlyFee must have at most 2 decimal places");
 
@@ -26,7 +26,7 @@ const validUntilSchema = z
 export const createSubscriptionSchema = z.object({
   body: z.object({
     student: z
-      .string({ required_error: "student is required" })
+      .string({ error: "student is required" })
       .regex(objectIdRegex, "student must be a valid MongoDB ObjectId"),
     planType: planTypeEnum.optional(),
     monthlyFee: monthlyFeeSchema,
@@ -84,13 +84,13 @@ export const subscriptionFiltersSchema = z.object({
       .transform(Number)
       .pipe(z.number().int().min(1))
       .optional()
-      .default("1"),
+      .default(1),
     limit: z
       .string()
       .transform(Number)
       .pipe(z.number().int().min(1).max(100))
       .optional()
-      .default("10"),
+      .default(10),
   }),
 });
 

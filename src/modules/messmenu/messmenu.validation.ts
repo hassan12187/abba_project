@@ -46,7 +46,9 @@ const mealSchema = z
 /** Convert "HH:MM AM/PM" to total minutes since midnight for comparison */
 function toMinutes(time: string): number {
   const [hhmm, period] = time.split(" ")
+  if(!hhmm)return 0;
   let [h, m]           = hhmm.split(":").map(Number)
+  if(!h || !m)return 0;
   if (period === "PM" && h !== 12) h += 12
   if (period === "AM" && h === 12) h  = 0
   return h * 60 + m

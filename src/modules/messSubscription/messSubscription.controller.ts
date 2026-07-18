@@ -75,7 +75,7 @@ export const getExpiringSoon = asyncHandler(async (req, res) => {
  * Get a single subscription by its ID.
  */
 export const getSubscriptionById = asyncHandler(async (req, res) => {
-  const subscription = await MessSubscriptionService.getById(req.params.id);
+  const subscription = await MessSubscriptionService.getById(req.params.id as string);
   res.status(200).json({ success: true, data: subscription });
 });
 
@@ -85,7 +85,7 @@ export const getSubscriptionById = asyncHandler(async (req, res) => {
  */
 export const getSubscriptionByStudentId = asyncHandler(async (req, res) => {
   const subscription = await MessSubscriptionService.getByStudentId(
-    req.params.studentId
+    req.params.studentId as string
   );
   res.status(200).json({ success: true, data: subscription });
 });
@@ -96,7 +96,7 @@ export const getSubscriptionByStudentId = asyncHandler(async (req, res) => {
  */
 export const updateSubscription = asyncHandler(async (req, res) => {
   const subscription = await MessSubscriptionService.update(
-    req.params.id,
+    req.params.id as string,
     req.body
   );
   res.status(200).json({
@@ -112,7 +112,7 @@ export const updateSubscription = asyncHandler(async (req, res) => {
  */
 export const updateSubscriptionStatus = asyncHandler(async (req, res) => {
   const subscription = await MessSubscriptionService.transitionStatus(
-    req.params.id,
+    req.params.id as string,
     req.body.status
   );
   res.status(200).json({
@@ -140,7 +140,7 @@ export const suspendExpiredSubscriptions = asyncHandler(async (_req, res) => {
  * Delete a subscription (only if Cancelled).
  */
 export const deleteSubscription = asyncHandler(async (req, res) => {
-  await MessSubscriptionService.delete(req.params.id);
+  await MessSubscriptionService.delete(req.params.id as string);
   res.status(200).json({
     success: true,
     message: "Subscription deleted successfully.",

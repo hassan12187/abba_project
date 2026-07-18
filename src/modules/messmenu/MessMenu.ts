@@ -28,5 +28,5 @@ const messMenuSchema=new Schema({
   }
 },{timestamps:true});
 
-const messSubscriptionModel= mongoose.models.MessMenu || model("MessMenu",messMenuSchema);
+const messSubscriptionModel= model("MessMenu",messMenuSchema);
 export default messSubscriptionModel; 

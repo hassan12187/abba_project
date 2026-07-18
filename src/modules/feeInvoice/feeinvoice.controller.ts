@@ -15,15 +15,15 @@ const asyncHandler =
  */
 export const getAllInvoices = asyncHandler(async (req, res) => {
   const filters: InvoiceFilters = {
-    status:       req.query.status       as InvoiceFilters["status"],
+    status:       req.query.status       as InvoiceFilters["status"] || 'Pending',
     billingMonth: req.query.billingMonth as string,
     student_id:   req.query.student_id   as string,
-    generatedBy:  req.query.generatedBy  as InvoiceFilters["generatedBy"],
+    generatedBy:  req.query.generatedBy  as InvoiceFilters["generatedBy"] || "AUTO",
     isLocked:     req.query.isLocked     as unknown as boolean,
     page:         Number(req.query.page)  || 1,
     limit:        Number(req.query.limit) || 10,
-    sortBy:       req.query.sortBy       as InvoiceFilters["sortBy"],
-    sortOrder:    req.query.sortOrder    as InvoiceFilters["sortOrder"],
+    sortBy:       req.query.sortBy       as InvoiceFilters["sortBy"] || 'createdAt',
+    sortOrder:    req.query.sortOrder    as InvoiceFilters["sortOrder"] || 'asc',
   }
   const result = await FeeInvoiceService.getAll(filters)
   res.status(200).json({ success: true, ...result })
@@ -42,7 +42,7 @@ export const getInvoiceStats = asyncHandler(async (_req, res) => {
  * GET /invoices/:id
  */
 export const getInvoiceById = asyncHandler(async (req, res) => {
-  const invoice = await FeeInvoiceService.getById(req.params.id)
+  const invoice = await FeeInvoiceService.getById(req.params.id as string)
   res.status(200).json({ success: true, data: invoice })
 })
 
@@ -62,7 +62,7 @@ export const createInvoice = asyncHandler(async (req, res) => {
  * PATCH /invoices/:id
  */
 export const updateInvoice = asyncHandler(async (req, res) => {
-  const invoice = await FeeInvoiceService.update(req.params.id, req.body)
+  const invoice = await FeeInvoiceService.update(req.params.id as string, req.body)
   res.status(200).json({
     success: true,
     message: "Invoice updated successfully.",
@@ -74,7 +74,7 @@ export const updateInvoice = asyncHandler(async (req, res) => {
  * PATCH /invoices/:id/cancel
  */
 export const cancelInvoice = asyncHandler(async (req, res) => {
-  const invoice = await FeeInvoiceService.cancel(req.params.id, req.body.reason)
+  const invoice = await FeeInvoiceService.cancel(req.params.id as string, req.body.reason)
   res.status(200).json({
     success: true,
     message: `Invoice ${invoice.invoiceNumber} has been cancelled.`,
@@ -88,7 +88,7 @@ export const cancelInvoice = asyncHandler(async (req, res) => {
  * POST /invoices/:invoiceId/payments
  */
 export const addPayment = asyncHandler(async (req, res) => {
-  const result = await FeeInvoiceService.addPayment(req.params.invoiceId, req.body)
+  const result = await FeeInvoiceService.addPayment(req.params.invoiceId as string, req.body)
   res.status(200).json({
     success: true,
     message: "Payment recorded successfully.",
@@ -149,7 +149,7 @@ export const createFeeTemplate = asyncHandler(async (req, res) => {
  * DELETE /invoices/templates/:id
  */
 export const deleteFeeTemplate = asyncHandler(async (req, res) => {
-  await FeeInvoiceService.deleteFeeTemplate(req.params.id)
+  await FeeInvoiceService.deleteFeeTemplate(req.params.id as string)
   res.status(200).json({
     success: true,
     message: "Fee template deleted.",

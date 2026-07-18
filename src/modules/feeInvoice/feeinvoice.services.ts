@@ -110,7 +110,7 @@ export const FeeInvoiceService = {
             createdAt:     1,
           },
         },
-        { $sort: sort },
+        // { $sort: sort },
         { $skip: skip },
         { $limit: limit },
       ]),
@@ -138,7 +138,7 @@ export const FeeInvoiceService = {
       .lean({ virtuals: true })
 
     if (!invoice) throw HttpError.notFound(`Invoice with id '${id}' not found.`)
-    return invoice as IFeeInvoice
+    return invoice as unknown as IFeeInvoice
   },
 
   /**
@@ -172,7 +172,7 @@ export const FeeInvoiceService = {
       generatedBy: dto.generatedBy ?? "MANUAL",
     })
 
-    return invoice.toObject({ virtuals: true }) as IFeeInvoice
+    return invoice.toObject({ virtuals: true }) as unknown as IFeeInvoice
   },
 
   /**
@@ -202,7 +202,7 @@ export const FeeInvoiceService = {
     if (dto.isLocked !== undefined) invoice.isLocked = dto.isLocked
 
     await invoice.save()   // triggers pre-save hook for status re-derivation
-    return invoice.toObject({ virtuals: true }) as IFeeInvoice
+    return invoice.toObject({ virtuals: true }) as unknown as IFeeInvoice
   },
 
   /**
@@ -227,7 +227,7 @@ export const FeeInvoiceService = {
       const invoice = await FeeInvoiceModel.findById(invoiceId).session(session)
       if (!invoice) throw HttpError.notFound(`Invoice with id '${invoiceId}' not found.`)
 
-      if (invoice.status === "Cancelled") {
+      if (invoice.status === "cancelled") {
         throw HttpError.badRequest("Cannot add payment to a cancelled invoice.")
       }
       if (invoice.isLocked) {
@@ -284,7 +284,7 @@ export const FeeInvoiceService = {
     const invoice = await FeeInvoiceModel.findById(id)
     if (!invoice) throw HttpError.notFound(`Invoice with id '${id}' not found.`)
 
-    if (invoice.status === "Cancelled") {
+    if (invoice.status === "cancelled") {
       throw HttpError.badRequest("Invoice is already cancelled.")
     }
     if (invoice.totalPaid > 0) {
@@ -293,11 +293,11 @@ export const FeeInvoiceService = {
       )
     }
 
-    invoice.status   = "Cancelled"
+    invoice.status   = "cancelled"
     invoice.isLocked = true
     await invoice.save()
 
-    return invoice.toObject({ virtuals: true }) as IFeeInvoice
+    return invoice.toObject({ virtuals: true }) as unknown as IFeeInvoice
   },
 
   /**
@@ -321,7 +321,7 @@ export const FeeInvoiceService = {
   /**
    * Student lookup by roll number — used when creating an invoice manually.
    */
-  async findStudentByRollNo(rollNo: string | number): Promise<StudentLookupResult> {
+  async findStudentByRollNo(rollNo: string): Promise<StudentLookupResult> {
     const student = await studentApplicationModel
       .findOne({ student_roll_no: rollNo }, "student_name student_roll_no")
       .populate("room_id", "room_no")
@@ -332,7 +332,7 @@ export const FeeInvoiceService = {
     return {
       student_id:      student._id as any,
       student_name:    student.student_name,
-      student_roll_no: student.student_roll_no as number,
+      student_roll_no: student.student_roll_no as string,
       room_id:         (student.room_id as any)?._id ?? null,
       room_no:         (student.room_id as any)?.room_no ?? "N/A",
     }

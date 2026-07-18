@@ -1,6 +1,9 @@
-import {Schema,model} from "mongoose";
+import {Model, Schema,model} from "mongoose";
+import { IRoom } from "./types.js";
 
-const roomSchema=new Schema({
+type RoomModelType = Model<IRoom,{},{}>
+
+const roomSchema=new Schema<IRoom,RoomModelType,{}>({
     room_no:{
         type:String
     },
@@ -52,5 +55,5 @@ const roomSchema=new Schema({
 roomSchema.virtual("available_beds").get(function() {
   return this.capacity - (this.occupants?.length ?? 0)
 })
-const roomModel=model("room",roomSchema);
+const roomModel=model<IRoom,RoomModelType>("room",roomSchema);
 export default roomModel;

@@ -159,19 +159,19 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 /** GET /auth/users/:id */
 const getUserById = asyncHandler(async (req, res) => {
-  const data = await UserService.getMe(req.params.id)
+  const data = await UserService.getMe(req.params.id as string)
   res.status(200).json({ success: true, data })
 })
 
 /** PATCH /auth/users/:id */
 const adminUpdateUser = asyncHandler(async (req, res) => {
-  const data = await UserService.updateUserByAdmin(req.params.id, req.body)
+  const data = await UserService.updateUserByAdmin(req.params.id as string, req.body)
   res.status(200).json({ success: true, message: "User updated.", data })
 })
 
 /** DELETE /auth/users/:id */
 const deleteUser = asyncHandler(async (req, res) => {
-  await UserService.deleteUser(req.params.id)
+  await UserService.deleteUser(req.params.id as string)
   res.status(200).json({ success: true, message: "User deleted." })
 })
 

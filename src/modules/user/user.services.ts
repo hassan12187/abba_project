@@ -1,11 +1,10 @@
-import crypto       from "crypto"
 import jwt           from "jsonwebtoken"
 import { hash }      from "bcrypt"
 import User          from "./userModel.js"
 import studentApplicationModel from "../student.application/studentApplicationModel.js"
 import redis         from "../../services/Redis.js"
 import { HttpError } from "../../utils/errors.js"
-import type { UserRole, UserStatus } from "./userModel.js"
+import type { IUser, UserRole, UserStatus } from "./userModel.js"
 
 const ACCESS_SECRET  = process.env.JWT_SECRET         ?? (() => { throw new Error("JWT_SECRET not set") })()
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ?? (() => { throw new Error("JWT_REFRESH_SECRET not set") })()
@@ -59,7 +58,7 @@ export const UserService = {
       }
     }
 
-    const user = await User.create({
+    const user:IUser = await User.create({
       username:      dto.username,
       email:         dto.email,
       password:      dto.password,
@@ -75,7 +74,6 @@ export const UserService = {
         $set: { userId: user._id },
       })
     }
-
     const accessToken  = signAccessToken({
       sub:           user._id.toString(),
       role:          user.role,
@@ -94,9 +92,12 @@ export const UserService = {
       .select("+password +refreshToken +failedLoginAttempts +lockedUntil")
 
     if (!user) throw HttpError.unauthorized("Invalid email or password.")
-    if (user.isLocked()) {
-      const mins = Math.ceil((user.lockedUntil!.getTime() - Date.now()) / 60000)
-      throw HttpError.unauthorized(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`)
+      if (user.isLocked()) {
+      const lockedUntil=user.lockedUntil;
+      if(lockedUntil){
+        const mins = Math.ceil((lockedUntil.getTime() - Date.now()) / 60000)
+        throw HttpError.unauthorized(`Account locked. Try again in ${mins} minute${mins !== 1 ? "s" : ""}.`)
+      }
     }
     if (user.status === "DISCONTINUED") {
       throw HttpError.forbidden("This account has been discontinued. Contact support.")

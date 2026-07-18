@@ -9,19 +9,19 @@ const statusEnum  = z.enum(USER_STATUSES)
 export const registerSchema = z.object({
   body: z.object({
     username: z
-      .string({ required_error: "Username is required." })
+      .string({ error: "Username is required." })
       .min(3,   "Username must be at least 3 characters.")
       .max(30,  "Username must be at most 30 characters.")
       .trim(),
 
     email: z
-      .string({ required_error: "Email is required." })
+      .string({ error: "Email is required." })
       .email("Please enter a valid email address.")
       .toLowerCase()
       .trim(),
 
     password: z
-      .string({ required_error: "Password is required." })
+      .string({ error: "Password is required." })
       .min(8, "Password must be at least 8 characters."),
 
     phone: z

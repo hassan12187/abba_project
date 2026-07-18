@@ -42,7 +42,7 @@ const getAllPayments = asyncHandler(async (req, res) => {
 
 /** GET /payments/:id */
 const getPaymentById = asyncHandler(async (req, res) => {
-  const payment = await PaymentService.getById(req.params.id)
+  const payment = await PaymentService.getById(req.params.id as string)
   res.status(200).json({ success: true, data: payment })
 })
 

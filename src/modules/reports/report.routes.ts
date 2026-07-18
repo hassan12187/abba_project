@@ -46,13 +46,13 @@ const createExpense = asyncHandler(async (req, res) => {
 
 /** PATCH /report/expenses/:id */
 const updateExpense = asyncHandler(async (req, res) => {
-  const expense = await ReportService.updateExpense(req.params.id, req.body)
+  const expense = await ReportService.updateExpense(req.params.id as string, req.body)
   res.status(200).json({ success: true, message: "Expense updated.", data: expense })
 })
 
 /** DELETE /report/expenses/:id */
 const deleteExpense = asyncHandler(async (req, res) => {
-  await ReportService.deleteExpense(req.params.id)
+  await ReportService.deleteExpense(req.params.id as string)
   res.status(200).json({ success: true, message: "Expense deleted." })
 })
 

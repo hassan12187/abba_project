@@ -41,7 +41,7 @@ export const createInvoiceSchema = z.object({
       (d) => {
         // dueDate must be in the future or within the billing month
         const [year, month] = d.billingMonth.split("-").map(Number)
-        const billingEnd    = new Date(year, month, 0)   // last day of billing month
+        const billingEnd    = new Date(year as number, month as number, 0)   // last day of billing month
         return d.dueDate >= billingEnd
       },
       { message: "dueDate must be on or after the end of the billing month", path: ["dueDate"] }
@@ -71,7 +71,7 @@ export const addPaymentSchema = z.object({
     // z.number().multipleOf(0.01) fails on clean values like 1500 due to
     // IEEE 754 floating point arithmetic — Math.round is the safe alternative.
     amount: z
-      .number({ invalid_type_error: "amount must be a number" })
+      .number({ error: "amount must be a number" })
       .positive("Payment amount must be positive")
       .transform((v) => Math.round(v * 100) / 100),
     paymentMethod: paymentMethodEnum,
@@ -107,8 +107,8 @@ export const invoiceFiltersSchema = z.object({
     student_id:   objectId.optional(),
     generatedBy:  generatedByEnum.optional(),
     isLocked:     z.enum(["true", "false"]).transform((v) => v === "true").optional(),
-    page:         z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:        z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("10"),
+    page:         z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:        z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(10),
     sortBy:       z.enum(["createdAt", "dueDate", "totalAmount"]).optional().default("createdAt"),
     sortOrder:    z.enum(["asc", "desc"]).optional().default("desc"),
   }),
@@ -118,7 +118,7 @@ export const invoiceFiltersSchema = z.object({
 export const studentSearchSchema = z.object({
   query: z.object({
     q: z
-      .string({ required_error: "Search query 'q' is required" })
+      .string({ error: "Search query 'q' is required" })
       .min(1, "Search query cannot be empty"),
   }),
 })

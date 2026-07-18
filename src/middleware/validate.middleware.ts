@@ -1,12 +1,20 @@
 import type { Request, Response, NextFunction } from "express";
-import { ZodType, ZodError } from "zod";
+import { ZodType, ZodError ,z, ZodSafeParseError} from "zod";
+
+
+type RequestSchemaType={
+  body?:unknown;
+  params?:unknown;
+  query?:unknown;
+};
+
 
 /**
  * Generic middleware factory that validates req against a Zod schema.
  * The schema should be shaped as: z.object({ body?, params?, query? })
  */
 export const validate =
-  (schema: ZodType) =>
+  <T extends ZodType<RequestSchemaType>>(schema: T) =>
   (req: Request, res: Response, next: NextFunction): void => {
     const result = schema.safeParse({
       body: req.body,
@@ -24,10 +32,12 @@ export const validate =
       return;
     }
 
+    const data = result.data as z.infer<T>;
+
     // Mutate req with coerced/transformed values (dates, numbers, etc.)
-    if (result.data.body !== undefined) req.body = result.data.body;
-    if (result.data.params !== undefined) req.params = result.data.params;
-  if (result.data.query !== undefined) {
+    if (data.body !== undefined) req.body = data.body;
+    if (data.params !== null) req.params = data.params as any;
+  if (data.query !== undefined) {
       Object.keys(req.query).forEach((key) => delete (req.query as Record<string, unknown>)[key])
       Object.assign(req.query, result.data.query)
     }
@@ -36,8 +46,7 @@ export const validate =
   };
 
 function formatZodErrors(error: ZodError) {
-  console.log(error);
-  return error?.errors?.map((e) => ({
+  return error?.issues?.map((e) => ({
     field: e.path.join("."),
     message: e.message,
   }));

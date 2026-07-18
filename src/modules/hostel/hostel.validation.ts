@@ -16,12 +16,12 @@ const roomStatusEnum  = z.enum(["available", "occupied", "maintenance"])
 export const createBlockSchema = z.object({
   body: z.object({
     block_no: z
-      .string({ required_error: "Block number is required" })
+      .string({ error: "Block number is required" })
       .min(1, "Block number cannot be empty")
       .max(10)
       .trim(),
     total_rooms: z
-      .number({ required_error: "total_rooms is required" })
+      .number({ error: "total_rooms is required" })
       .int("Must be a whole number")
       .min(1, "Must have at least 1 room")
       .max(500),
@@ -48,8 +48,8 @@ export const blockFiltersSchema = z.object({
   query: z.object({
     status:    blockStatusEnum.optional(),
     search:    z.string().max(100).optional(),
-    page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("10"),
+    page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(10),
     sortBy:    z.enum(["block_no", "createdAt"]).optional().default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   }),
@@ -62,13 +62,13 @@ export const blockFiltersSchema = z.object({
 export const createRoomSchema = z.object({
   body: z.object({
     room_no:  z
-      .string({ required_error: "Room number is required" })
+      .string({ error: "Room number is required" })
       .min(1)
       .max(10)
       .trim(),
     type:     roomTypeEnum.optional(),
     fees:     z
-      .number({ required_error: "Fees are required" })
+      .number({ error: "Fees are required" })
       .min(0, "Fees cannot be negative")
       .transform((v) => Math.round(v * 100) / 100),
     capacity: z.number().int().min(1).max(20).optional(),
@@ -107,8 +107,8 @@ export const roomFiltersSchema = z.object({
     status:    roomStatusEnum.optional(),
     available: z.enum(["true", "false"]).transform((v) => v === "true").optional(),
     search:    z.string().max(100).optional(),
-    page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default("1"),
-    limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default("10"),
+    page:      z.string().transform(Number).pipe(z.number().int().min(1)).optional().default(1),
+    limit:     z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional().default(10),
     sortBy:    z.enum(["room_no", "fees", "capacity"]).optional().default("room_no"),
     sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
   }),

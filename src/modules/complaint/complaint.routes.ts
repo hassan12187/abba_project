@@ -44,7 +44,7 @@ const getAll = asyncHandler(async (req, res) => {
 
 /** GET /complaints/:id */
 const getById = asyncHandler(async (req, res) => {
-  const data = await ComplaintService.getById(req.params.id)
+  const data = await ComplaintService.getById(req.params.id as string)
   res.status(200).json({ success: true, data })
 })
 
@@ -60,7 +60,7 @@ const createComplaint = asyncHandler(async (req, res) => {
 
 /** PATCH /complaints/:id */
 const updateComplaint = asyncHandler(async (req, res) => {
-  const data = await ComplaintService.update(req.params.id, req.body)
+  const data = await ComplaintService.update(req.params.id as string, req.body)
   res.status(200).json({ success: true, message: "Complaint updated.", data })
 })
 
@@ -85,14 +85,14 @@ const updateStatus = asyncHandler(async (req, res, next) => {
 
   // Re-run validation now that current_status is set
   validate(updateStatusSchema)(req, res, async () => {
-    const data = await ComplaintService.updateStatus(req.params.id, req.body)
+    const data = await ComplaintService.updateStatus(req.params.id as string, req.body)
     res.status(200).json({ success: true, message: `Status updated to "${req.body.status}".`, data })
   })
 })
 
 /** DELETE /complaints/:id */
 const deleteComplaint = asyncHandler(async (req, res) => {
-  await ComplaintService.delete(req.params.id)
+  await ComplaintService.delete(req.params.id as string)
   res.status(200).json({ success: true, message: "Complaint deleted." })
 })
 
