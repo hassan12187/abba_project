@@ -12,7 +12,7 @@ import { globalErrorHandler }  from "./middleware/error.middleware.js"
 import { authenticate, isAdmin } from "./middleware/Auth.middleware.js"
 import { generateMonthlyFees } from "./services/FeeService.js"
 import "./services/agenda.js"
-import "./queues/emailWorker.js"
+// import "./queues/emailWorker.js"
 
 // ── Socket (replaces the old manual io export + WebSocketService) ─────────────
 import { initSocket } from "./modules/notifications/socket.server.js"
