@@ -5,6 +5,7 @@ import studentApplicationModel from "../student.application/studentApplicationMo
 import redis         from "../../services/Redis.js"
 import { HttpError } from "../../utils/errors.js"
 import type { IUser, UserRole, UserStatus } from "./userModel.js"
+import { changePasswordVerification } from "../../services/emailJobs.js"
 
 const ACCESS_SECRET  = process.env.JWT_SECRET         ?? (() => { throw new Error("JWT_SECRET not set") })()
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET ?? (() => { throw new Error("JWT_REFRESH_SECRET not set") })()
@@ -168,6 +169,7 @@ export const UserService = {
     })
     await redis.set(`reset:code:${user._id}`, code, "EX", RESET_CODE_TTL)
     // TODO: EmailService.sendResetCode(user.email, code)
+    await changePasswordVerification(user.email,code);
     return { userId: user._id.toString() }
   },
 
