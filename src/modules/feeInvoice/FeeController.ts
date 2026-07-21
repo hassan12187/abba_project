@@ -4,7 +4,7 @@ import FeeInvoiceModel from "./FeeInvoice.js";
 import FeeTemplate from "../../models/FeeTemplate.js";
 import studentApplicationModel from "../student.application/studentApplicationModel.js";
 import Counter from "../../models/Counter.js";
-import redis from "../../services/Redis.js";
+// import redis from "../../services/Redis.js";
 import Payment from "../payment/payment.model.js";
 
 export const getFeeInvoice = async (req: Request, res: Response) => {
@@ -193,16 +193,16 @@ export const addInvoicePayment = async (req: Request, res: Response) => {
 };
 export const getFeeTemplates = async (req: Request, res: Response) => {
     try {
-        const redisCachedFeeTemplate = await redis.get('templates');
-        if (redisCachedFeeTemplate) {
-            return res.status(200).json(JSON.parse(redisCachedFeeTemplate));
-        }
+        // // const redisCachedFeeTemplate = await redis.get('templates');
+        // if (redisCachedFeeTemplate) {
+            // return res.status(200).json(JSON.parse(redisCachedFeeTemplate));
+        // }
 
         const templates = await FeeTemplate.find({}, 'name description frequency category roomType totalAmount');
         
         if (templates.length === 0) return res.status(404).json({ message: "No templates found" });
 
-        await redis.set("templates", JSON.stringify(templates));
+        // await redis.set("templates", JSON.stringify(templates));
         return res.status(200).json(templates);
     } catch (error) {
         console.error(error);
@@ -217,15 +217,15 @@ export const addFeeTemplate = async (req: Request, res: Response) => {
         await FeeTemplate.create({ name, description, frequency, category, totalAmount, roomType });
 
         // Standard cache invalidation
-        let cursor = "0";
-        do {
-            const reply = await redis.scan(cursor, 'MATCH', 'templates*', 'COUNT', 100);
-            cursor = reply[0];
-            const keys = reply[1];
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
-        } while (cursor !== "0");
+        // let cursor = "0";
+        // do {
+        //     // const reply = await redis.scan(cursor, 'MATCH', 'templates*', 'COUNT', 100);
+        //     cursor = reply[0];
+        //     const keys = reply[1];
+        //     if (keys.length > 0) {
+        //         // await redis.del(...keys);
+        //     }
+        // } while (cursor !== "0");
 
         return res.status(201).json({ message: "Template created successfully" });
     } catch (error) {

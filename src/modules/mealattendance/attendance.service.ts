@@ -1,6 +1,6 @@
 import { FilterQuery, SortOrder, Types } from "mongoose"
 import AttendanceRecord from "./attendance.model.js"
-import redis            from "../../services/Redis.js"
+// import redis            from "../../services/Redis.js"
 import { HttpError }    from "../../utils/errors.js"
 import type {
   MarkAttendanceDTO, BulkMarkDTO, UpdateAttendanceDTO,
@@ -30,26 +30,26 @@ const TTL_STATS   = 5 * 60
 const TTL_STUDENT = 5 * 60
 const TTL_DAILY   = 2 * 60
 
-async function invalidatePrefix(prefix: string): Promise<void> {
-  let cursor = "0"
-  do {
-    const [next, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100)
-    cursor = next
-    if (keys.length) await redis.del(...keys)
-  } while (cursor !== "0")
-}
+// async function invalidatePrefix(prefix: string): Promise<void> {
+//   let cursor = "0"
+//   do {
+//     // const [next, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100)
+//     cursor = next
+//     // if (keys.length) await redis.del(...keys)
+//   } while (cursor !== "0")
+// }
 
-/** Invalidate everything related to a set of student IDs */
-async function invalidateOnWrite(studentIds: string[]): Promise<void> {
-  const ops: Promise<any>[] = [
-    invalidatePrefix(PREFIX_LIST),
-    invalidatePrefix(PREFIX_STATS),
-    invalidatePrefix(PREFIX_DAILY),
-    // Drop cached summaries for affected students
-    ...studentIds.map((id) => invalidatePrefix(`${PREFIX_STUDENT}${id}`)),
-  ]
-  await Promise.all(ops)
-}
+// /** Invalidate everything related to a set of student IDs */
+// async function invalidateOnWrite(studentIds: string[]): Promise<void> {
+//   const ops: Promise<any>[] = [
+//     invalidatePrefix(PREFIX_LIST),
+//     invalidatePrefix(PREFIX_STATS),
+//     invalidatePrefix(PREFIX_DAILY),
+//     // Drop cached summaries for affected students
+//     ...studentIds.map((id) => invalidatePrefix(`${PREFIX_STUDENT}${id}`)),
+//   ]
+//   await Promise.all(ops)
+// }
 
 function filtersKey(f: AttendanceFilters | Record<string, any>): string {
   return JSON.stringify(
@@ -86,8 +86,8 @@ export const AttendanceService = {
 
   async getAll(filters: AttendanceFilters): Promise<PaginatedAttendanceResponse> {
     const cacheKey = `${PREFIX_LIST}${filtersKey(filters)}`
-    const cached   = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached   = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     const {
       mealType, status, student,
@@ -124,7 +124,7 @@ export const AttendanceService = {
       totalPages: Math.ceil(total / limit),
     }
 
-    await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
+    // await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
     return result
   },
 
@@ -146,8 +146,8 @@ export const AttendanceService = {
     mealType?: string
   ): Promise<DailyMealSummary[]> {
     const cacheKey = `${PREFIX_STATS}daily:${from}:${to}:${mealType ?? "all"}`
-    const cached   = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached   = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     const matchStage: any = {
       date: {
@@ -189,7 +189,7 @@ export const AttendanceService = {
       },
     ])
 
-    await redis.set(cacheKey, JSON.stringify(rows), "EX", TTL_STATS)
+    // await redis.set(cacheKey, JSON.stringify(rows), "EX", TTL_STATS)
     return rows
   },
 
@@ -203,9 +203,9 @@ export const AttendanceService = {
     to?:       string
   ): Promise<StudentAttendanceSummary> {
     const cacheKey = `${PREFIX_STUDENT}${studentId}:${from ?? "start"}:${to ?? "end"}`
-    const cached   = await redis.get(cacheKey)
+    // const cached   = await redis.get(cacheKey)
     // console.log(JSON.parse(cached));
-    if (cached) return JSON.parse(cached)
+    // if (cached) return JSON.parse(cached)
 
     const match: any = { student: new Types.ObjectId(studentId) }
     if (from || to) {
@@ -255,7 +255,7 @@ export const AttendanceService = {
       attendancePct:    total > 0 ? Math.round((totalPresent / total) * 1000) / 10 : 0,
       byMeal:           byMeal as any,
     }
-    await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_STUDENT)
+    // await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_STUDENT)
     return result
   },
 
@@ -281,7 +281,7 @@ export const AttendanceService = {
     ).populate("student", "student_name student_roll_no student_email")
      .lean()
 
-    invalidateOnWrite([dto.student]).catch(console.error)
+    // invalidateOnWrite([dto.student]).catch(console.error)
 
     return record as unknown as IAttendanceRecord
   },
@@ -310,7 +310,7 @@ export const AttendanceService = {
     const result = await AttendanceRecord.bulkWrite(ops, { ordered: false })
 
     const studentIds = [...new Set(dto.records.map((r) => r.student))]
-    invalidateOnWrite(studentIds).catch(console.error)
+    // invalidateOnWrite(studentIds).catch(console.error)
 
     return {
       upserted: result.upsertedCount,
@@ -337,13 +337,13 @@ export const AttendanceService = {
 
     if (!record) throw HttpError.notFound(`Attendance record ${id} not found.`)
 
-    invalidateOnWrite([(record as any).student?._id?.toString() ?? ""]).catch(console.error)
+    // invalidateOnWrite([(record as any).student?._id?.toString() ?? ""]).catch(console.error)
     return record as unknown as IAttendanceRecord
   },
 
   async delete(id: string): Promise<void> {
     const record = await AttendanceRecord.findByIdAndDelete(id).lean()
     if (!record) throw HttpError.notFound(`Attendance record ${id} not found.`)
-    invalidateOnWrite([(record as any).student?.toString() ?? ""]).catch(console.error)
+    // invalidateOnWrite([(record as any).student?.toString() ?? ""]).catch(console.error)
   },
 }

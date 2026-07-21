@@ -1,6 +1,6 @@
 import { FilterQuery, SortOrder } from "mongoose"
 import ExpenseModel              from "./expenseModel.js"
-import redis                     from "../../services/Redis.js"
+// import redis                     from "../../services/Redis.js"
 import { HttpError }             from "../../utils/errors.js"
 import type {
   CreateExpenseDTO, UpdateExpenseDTO,
@@ -14,7 +14,7 @@ import type {
 //
 //   GET /expenses?...   → "expense:list:<fingerprint>"  TTL 2 min
 //                          Short TTL because filters vary widely — many possible
-//                          keys. We don't want to fill Redis with stale pages.
+                        //  keys. We don't want to fill Redis with stale pages.
 //
 //   GET /expenses/stats → "expense:stats"               TTL 10 min
 //                          Stats are expensive (4 aggregations). Safe to cache
@@ -38,26 +38,26 @@ const TTL_STATS  = 10 * 60   // 10 minutes
 const TTL_DETAIL = 5  * 60   //  5 minutes
 
 /** Scan-and-delete all keys matching a prefix (handles any page count). */
-async function invalidatePrefix(prefix: string): Promise<void> {
-  let cursor = "0"
-  do {
-    const [nextCursor, keys] = await redis.scan(
-      cursor, "MATCH", `${prefix}*`, "COUNT", 100
-    )
-    cursor = nextCursor
-    if (keys.length > 0) await redis.del(...keys)
-  } while (cursor !== "0")
-}
+// async function invalidatePrefix(prefix: string): Promise<void> {
+//   let cursor = "0"
+//   do {
+//     // const [nextCursor, keys] = await redis.scan(
+//       cursor, "MATCH", `${prefix}*`, "COUNT", 100
+//     )
+//     cursor = nextCursor
+//     // if (keys.length > 0) await redis.del(...keys)
+//   } while (cursor !== "0")
+// }
 
 /** Invalidate everything touched by a write operation. */
-async function invalidateOnWrite(expenseId?: string): Promise<void> {
-  const ops: Promise<any>[] = [
-    invalidatePrefix(CACHE_PREFIX_LIST),
-    redis.del(CACHE_KEY_STATS),
-  ]
-  if (expenseId) ops.push(redis.del(`${CACHE_PREFIX_DETAIL}${expenseId}`))
-  await Promise.all(ops)
-}
+// async function invalidateOnWrite(expenseId?: string): Promise<void> {
+//   const ops: Promise<any>[] = [
+//     invalidatePrefix(CACHE_PREFIX_LIST),
+//     // redis.del(CACHE_KEY_STATS),
+//   ]
+//   // if (expenseId) ops.push(redis.del(`${CACHE_PREFIX_DETAIL}${expenseId}`))
+//   await Promise.all(ops)
+// }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function startOfDay(d: Date) { const r = new Date(d); r.setHours(0,0,0,0);      return r }
@@ -90,8 +90,8 @@ export const ExpenseService = {
     const cacheKey = `${CACHE_PREFIX_LIST}${filtersKey(filters)}`
 
     // Cache hit
-    const cached = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     // Cache miss — query MongoDB
     const {
@@ -131,26 +131,26 @@ export const ExpenseService = {
       totalAmount: Math.round((totalAmountAgg[0]?.total ?? 0) * 100) / 100,
     }
 
-    await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
+    // await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
     return result
   },
 
   async getById(id: string): Promise<Expense> {
     const cacheKey = `${CACHE_PREFIX_DETAIL}${id}`
 
-    const cached = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     const expense = await ExpenseModel.findById(id).lean()
     if (!expense) throw HttpError.notFound(`Expense ${id} not found.`)
 
-    await redis.set(cacheKey, JSON.stringify(expense), "EX", TTL_DETAIL)
+    // await redis.set(cacheKey, JSON.stringify(expense), "EX", TTL_DETAIL)
     return expense as unknown as Expense
   },
 
   async getStats(): Promise<ExpenseStatsResponse["data"]> {
-    const cached = await redis.get(CACHE_KEY_STATS)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(CACHE_KEY_STATS)
+    // if (cached) return JSON.parse(cached)
 
     const now       = new Date()
     const thisStart = startOfMonth(now)
@@ -194,7 +194,7 @@ export const ExpenseService = {
       lastMonth:   Math.round((lastMonth[0]?.total ?? 0) * 100) / 100,
     }
 
-    await redis.set(CACHE_KEY_STATS, JSON.stringify(result), "EX", TTL_STATS)
+    // await redis.set(CACHE_KEY_STATS, JSON.stringify(result), "EX", TTL_STATS)
     return result
   },
 
@@ -210,7 +210,7 @@ export const ExpenseService = {
     })
 
     // Invalidate list pages + stats (new record changes totals + page counts)
-    await invalidateOnWrite()
+    // await invalidateOnWrite()
 
     return expense.toObject() as unknown as Expense
   },
@@ -229,7 +229,7 @@ export const ExpenseService = {
     if (!expense) throw HttpError.notFound(`Expense ${id} not found.`)
 
     // Invalidate list pages, stats, and the specific detail cache
-    await invalidateOnWrite(id)
+    // await invalidateOnWrite(id)
 
     return expense as unknown as Expense
   },
@@ -239,6 +239,6 @@ export const ExpenseService = {
     if (!deleted) throw HttpError.notFound(`Expense ${id} not found.`)
 
     // Invalidate list pages, stats, and the deleted record's detail key
-    await invalidateOnWrite(id)
+    // await invalidateOnWrite(id)
   },
 }

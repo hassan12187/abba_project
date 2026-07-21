@@ -2,7 +2,7 @@ import jwt           from "jsonwebtoken"
 import { hash,compare }      from "bcrypt"
 import User          from "./userModel.js"
 import studentApplicationModel from "../student.application/studentApplicationModel.js"
-import redis         from "../../services/Redis.js"
+// import redis         from "../../services/Redis.js"
 import { HttpError } from "../../utils/errors.js"
 import type { IUser, UserRole, UserStatus } from "./userModel.js"
 import { changePasswordVerification } from "../../services/emailJobs.js"
@@ -126,7 +126,7 @@ export const UserService = {
       isFirstLogin: false,
     })
 
-    await redis.del(userCacheKey(user._id.toString())).catch(() => {})
+    // await redis.del(userCacheKey(user._id.toString())).catch(() => {})
     return { user: sanitise(user), accessToken, refreshToken }
   },
 
@@ -152,7 +152,7 @@ export const UserService = {
 
   async logout(userId: string) {
     await User.findByIdAndUpdate(userId, { refreshToken: null })
-    await redis.del(userCacheKey(userId)).catch(() => {})
+    // await redis.del(userCacheKey(userId)).catch(() => {})
   },
 
   // ── Password ──────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ export const UserService = {
       passwordResetCode:    hashed,
       passwordResetExpires: expires,
     })
-    await redis.set(`reset:code:${user._id}`, code, "EX", RESET_CODE_TTL)
+    // await redis.set(`reset:code:${user._id}`, code, "EX", RESET_CODE_TTL)
     // TODO: EmailService.sendResetCode(user.email, code)
     await changePasswordVerification(user.email,code);
     return { userId: user._id.toString() }
@@ -202,20 +202,20 @@ export const UserService = {
     user.passwordResetExpires = undefined as any
     user.refreshToken         = null as any
     await user.save()
-    await redis.del(`reset:code:${user._id}`).catch(() => {})
-    await redis.del(userCacheKey(user._id.toString())).catch(() => {})
+    // await redis.del(`reset:code:${user._id}`).catch(() => {})
+    // await redis.del(userCacheKey(user._id.toString())).catch(() => {})
   },
 
   // ── Profile ───────────────────────────────────────────────────────────────
 
   async getMe(userId: string) {
     const cacheKey = userCacheKey(userId)
-    const cached   = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached   = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
     const user = await User.findById(userId).lean()
     if (!user) throw HttpError.notFound("User not found.")
     const safe = sanitise(user)
-    await redis.set(cacheKey, JSON.stringify(safe), "EX", CACHE_TTL)
+    // await redis.set(cacheKey, JSON.stringify(safe), "EX", CACHE_TTL)
     return safe
   },
 
@@ -226,7 +226,7 @@ export const UserService = {
     const user = await User.findByIdAndUpdate(userId, { $set: update }, { new: true, runValidators: true }).lean()
     if (!user) throw HttpError.notFound("User not found.")
     const safe = sanitise(user)
-    await redis.set(userCacheKey(userId), JSON.stringify(safe), "EX", CACHE_TTL)
+    // await redis.set(userCacheKey(userId), JSON.stringify(safe), "EX", CACHE_TTL)
     return safe
   },
 
@@ -238,7 +238,7 @@ export const UserService = {
     user.password     = dto.newPassword
     user.refreshToken = null as any
     await user.save()
-    await redis.del(userCacheKey(userId)).catch(() => {})
+    // await redis.del(userCacheKey(userId)).catch(() => {})
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────────
@@ -268,14 +268,14 @@ export const UserService = {
   ) {
     const user = await User.findByIdAndUpdate(id, { $set: dto }, { new: true, runValidators: true }).lean()
     if (!user) throw HttpError.notFound(`User ${id} not found.`)
-    await redis.del(userCacheKey(id)).catch(() => {})
+    // await redis.del(userCacheKey(id)).catch(() => {})
     return sanitise(user)
   },
 
   async deleteUser(id: string) {
     const user = await User.findByIdAndDelete(id)
     if (!user) throw HttpError.notFound(`User ${id} not found.`)
-    await redis.del(userCacheKey(id)).catch(() => {})
+    // await redis.del(userCacheKey(id)).catch(() => {})
   },
 
   // ── Student: link existing account to application ─────────────────────────
@@ -292,7 +292,7 @@ export const UserService = {
     await user.save()
 
     await studentApplicationModel.findByIdAndUpdate(applicationId, { $set: { userId } })
-    await redis.del(userCacheKey(userId)).catch(() => {})
+    // await redis.del(userCacheKey(userId)).catch(() => {})
     return sanitise(user)
   },
 }

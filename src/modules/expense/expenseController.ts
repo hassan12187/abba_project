@@ -1,5 +1,5 @@
 import expenseModel from "./expenseModel.js";
-import redis from "../../services/Redis.js";
+// import redis from "../../services/Redis.js";
 import { type Response, type Request } from "express";
 
 // Define an interface for the filter to prevent property errors
@@ -20,10 +20,10 @@ export const getAllExpense = async (req: Request, res: Response) => {
         if (query.trim() !== "") cachedKey += `:query:${query}`;
         if (date) cachedKey += `:date:${date}`;
 
-        const expenseDataFromCache = await redis.get(cachedKey);
-        if (expenseDataFromCache) {
-            return res.status(200).json({ data: JSON.parse(expenseDataFromCache) });
-        }
+        // const expenseDataFromCache = await redis.get(cachedKey);
+        // if (expenseDataFromCache) {
+        //     return res.status(200).json({ data: JSON.parse(expenseDataFromCache) });
+        // }
 
         const filterKey: ExpenseFilter = {};
 
@@ -46,7 +46,7 @@ export const getAllExpense = async (req: Request, res: Response) => {
 
         if (result.length === 0) return res.status(204).json({ data: [] });
 
-        await redis.setex(cachedKey, 3600, JSON.stringify(result));
+        // await redis.setex(cachedKey, 3600, JSON.stringify(result));
         return res.status(200).json({ data: result });
     } catch (error) {
         console.error('error is ', error);
@@ -64,15 +64,15 @@ export const addExpense = async (req: Request, res: Response) => {
         if (!result) return res.status(400).json({ data: "Error Inserting Expense." });
 
         // Invalidate Redis Cache for expenses
-        let cursor = "0";
-        do {
-            const reply = await redis.scan(cursor, 'MATCH', 'expenses*', 'COUNT', 100);
-            cursor = reply[0];
-            const keys = reply[1];
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
-        } while (cursor !== "0");
+        // let cursor = "0";
+        // do {
+        //     // const reply = await redis.scan(cursor, 'MATCH', 'expenses*', 'COUNT', 100);
+        //     cursor = reply[0];
+        //     const keys = reply[1];
+        //     if (keys.length > 0) {
+        //         // await redis.del(...keys);
+        //     }
+        // } while (cursor !== "0");
 
         return res.status(200).json({ data: "Expense Successfully Inserted.", expense: result });
     } catch (error) {
@@ -92,13 +92,13 @@ export const editExpense = async (req: Request, res: Response) => {
         if (!result) return res.status(404).json({ data: "No Expense Found to update." });
 
         // Clear cache after edit
-        let cursor = "0";
-        do {
-            const reply = await redis.scan(cursor, 'MATCH', 'expenses*', 'COUNT', 100);
-            cursor = reply[0];
-            const keys = reply[1];
-            if (keys.length > 0) await redis.del(...keys);
-        } while (cursor !== "0");
+        // let cursor = "0";
+        // do {
+        //     // const reply = await redis.scan(cursor, 'MATCH', 'expenses*', 'COUNT', 100);
+        //     cursor = reply[0];
+        //     const keys = reply[1];
+        //     // if (keys.length > 0) await redis.del(...keys);
+        // } while (cursor !== "0");
 
         return res.status(200).json({ data: "Expense Updated Successfully", result });
     } catch (error) {

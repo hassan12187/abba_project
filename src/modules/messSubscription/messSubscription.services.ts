@@ -1,5 +1,5 @@
 import MessSubscription from "./MessSubscription.model.js"
-import redis             from "../../services/Redis.js"
+// import redis             from "../../services/Redis.js"
 import {
   IMessSubscription, CreateSubscriptionDTO, UpdateSubscriptionDTO,
   SubscriptionFilters, PaginatedResult, SubscriptionStatus,
@@ -25,32 +25,32 @@ const TTL = {
 
 // ─── Redis helpers ────────────────────────────────────────────────────────────
 
-async function getCache<T>(key: string): Promise<T | null> {
-  try {
-    const raw = await redis.get(key)
-    return raw ? (JSON.parse(raw) as T) : null
-  } catch {
-    return null
-  }
-}
+// async function getCache<T>(key: string): Promise<T | null> {
+//   try {
+//     // const raw = await redis.get(key)
+//     return raw ? (JSON.parse(raw) as T) : null
+//   } catch {
+//     return null
+//   }
+// }
 
-async function setCache(key: string, value: unknown, ttl: number): Promise<void> {
-  try {
-    await redis.set(key, JSON.stringify(value), "EX", ttl)
-  } catch { /* swallow */ }
-}
+// async function setCache(key: string, value: unknown, ttl: number): Promise<void> {
+//   try {
+//     // await redis.set(key, JSON.stringify(value), "EX", ttl)
+//   } catch { /* swallow */ }
+// }
 
-/** Wipes every key under the "sub:" namespace after any write. */
-async function invalidateAll(): Promise<void> {
-  try {
-    let cursor = "0"
-    do {
-      const [next, keys] = await redis.scan(cursor, "MATCH", "sub:*", "COUNT", 100)
-      cursor = next
-      if (keys.length) await redis.del(...keys)
-    } while (cursor !== "0")
-  } catch { /* swallow */ }
-}
+// /** Wipes every key under the "sub:" namespace after any write. */
+// async function invalidateAll(): Promise<void> {
+//   try {
+//     let cursor = "0"
+//     do {
+//       // const [next, keys] = await redis.scan(cursor, "MATCH", "sub:*", "COUNT", 100)
+//       cursor = next
+//       // if (keys.length) await redis.del(...keys)
+//     } while (cursor !== "0")
+//   } catch { /* swallow */ }
+// }
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
 
@@ -83,10 +83,9 @@ export const MessSubscriptionService = {
    * Short TTL because admins immediately act on this data after status changes.
    */
   async getAll(filters: SubscriptionFilters): Promise<PaginatedResult<IMessSubscription>> {
-    const cacheKey = CACHE.list(filters)
-    const cached   = await getCache<PaginatedResult<IMessSubscription>>(cacheKey)
-    if (cached) return cached
-
+    // const cacheKey = CACHE.list(filters)
+    // const cached   = await getCache<PaginatedResult<IMessSubscription>>(cacheKey)
+    // if (cached) return cached
     const {
       status, planType, expiringBefore,
       page = 1, limit = 10,
@@ -119,7 +118,7 @@ export const MessSubscriptionService = {
       totalPages: Math.ceil(total / limit),
     }
 
-    await setCache(cacheKey, result, TTL.list)
+    // await setCache(cacheKey, result, TTL.list)
     return result
   },
 
@@ -149,8 +148,8 @@ export const MessSubscriptionService = {
    * Invalidated on every write so counts don't lag after status transitions.
    */
   async getStats(){
-    const cached:any = await getCache<ReturnType<typeof MessSubscriptionService.getStats>>(CACHE.stats)
-    if (cached) return cached
+    // const cached:any = await getCache<ReturnType<typeof MessSubscriptionService.getStats>>(CACHE.stats)
+    // if (cached) return cached
 
     const [statusBreakdown, planBreakdown, revenueStats] = await Promise.all([
       MessSubscription.aggregate([{ $group: { _id: "$status",   count: { $sum: 1 } } }]),
@@ -167,7 +166,7 @@ export const MessSubscriptionService = {
       revenue:  revenueStats[0] ?? { totalMonthlyRevenue: 0, avgMonthlyFee: 0, activeCount: 0 },
     }
 
-    await setCache(CACHE.stats, result, TTL.stats)
+    // await setCache(CACHE.stats, result, TTL.stats)
     return result
   },
 
@@ -175,9 +174,9 @@ export const MessSubscriptionService = {
    * Expiring-soon list — cached per `withinDays` value for 10 minutes.
    */
   async getExpiringSoon(withinDays: number): Promise<IMessSubscription[]> {
-    const cacheKey = CACHE.expiringSoon(withinDays)
-    const cached   = await getCache<IMessSubscription[]>(cacheKey)
-    if (cached) return cached
+    // const cacheKey = CACHE.expiringSoon(withinDays)
+    // const cached   = await getCache<IMessSubscription[]>(cacheKey)
+    // if (cached) return cached
 
     const now       = new Date()
     const threshold = addDays(now, withinDays)
@@ -187,7 +186,7 @@ export const MessSubscriptionService = {
       validUntil: { $gte: now, $lte: threshold },
     }).populate("student", "student_name student_email student_roll_no").lean()
 
-    await setCache(cacheKey, subs, TTL.expiringSoon)
+    // await setCache(cacheKey, subs, TTL.expiringSoon)
     return subs as IMessSubscription[]
   },
 
@@ -202,7 +201,7 @@ export const MessSubscriptionService = {
 
     const sub = await MessSubscription.create({ student: dto.student, planType, monthlyFee: dto.monthlyFee, validUntil })
 
-    await invalidateAll()
+    // await invalidateAll()
     return sub.toObject() as IMessSubscription
   },
 
@@ -220,7 +219,7 @@ export const MessSubscriptionService = {
 
     if (!updated) throw HttpError.notFound(`Subscription with id '${id}' not found.`)
 
-    await invalidateAll()
+    // await invalidateAll()
     return updated as IMessSubscription
   },
 
@@ -240,7 +239,7 @@ export const MessSubscriptionService = {
     sub.status = newStatus
     await sub.save()
 
-    await invalidateAll()
+    // await invalidateAll()
     return sub.toObject() as IMessSubscription
   },
 
@@ -249,7 +248,7 @@ export const MessSubscriptionService = {
       { status: "Active", validUntil: { $lt: new Date() } },
       { $set: { status: "Suspended" } }
     )
-    await invalidateAll()
+    // await invalidateAll()
     return { modifiedCount: result.modifiedCount }
   },
 
@@ -259,6 +258,6 @@ export const MessSubscriptionService = {
     if (sub.status !== "Cancelled") throw HttpError.forbidden("Only 'Cancelled' subscriptions can be deleted.")
 
     await sub.deleteOne()
-    await invalidateAll()
+    // await invalidateAll()
   },
 }

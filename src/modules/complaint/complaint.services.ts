@@ -1,6 +1,6 @@
 import { FilterQuery, SortOrder } from "mongoose"
 import ComplaintModel from "./complaint.model.js"
-import redis          from "../../services/Redis.js"
+// import redis          from "../../services/Redis.js"
 import { HttpError }  from "../../utils/errors.js"
 import type {
   CreateComplaintDTO, UpdateComplaintDTO, UpdateStatusDTO,
@@ -24,23 +24,23 @@ const TTL_LIST   = 2 * 60
 const TTL_STATS  = 5 * 60
 const TTL_DETAIL = 5 * 60
 
-async function invalidatePrefix(prefix: string): Promise<void> {
-  let cursor = "0"
-  do {
-    const [next, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100)
-    cursor = next
-    if (keys.length) await redis.del(...keys)
-  } while (cursor !== "0")
-}
+// async function invalidatePrefix(prefix: string): Promise<void> {
+//   // let cursor = "0"
+//   // do {
+//     // const [next, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100)
+//     // cursor = next
+//     // if (keys.length) await redis.del(...keys)
+//   // } while (cursor !== "0")
+// }
 
-async function invalidateOnWrite(id?: string): Promise<void> {
-  const ops: Promise<any>[] = [
-    invalidatePrefix(CACHE_PREFIX_LIST),
-    redis.del(CACHE_KEY_STATS),
-  ]
-  if (id) ops.push(redis.del(`${CACHE_PREFIX_DETAIL}${id}`))
-  await Promise.all(ops)
-}
+// async function invalidateOnWrite(id?: string): Promise<void> {
+//   const ops: Promise<any>[] = [
+//     invalidatePrefix(CACHE_PREFIX_LIST),
+//     // redis.del(CACHE_KEY_STATS),
+//   ]
+//   // if (id) ops.push(redis.del(`${CACHE_PREFIX_DETAIL}${id}`))
+//   await Promise.all(ops)
+// }
 
 function filtersKey(f: ComplaintFilters): string {
   return JSON.stringify(
@@ -64,9 +64,9 @@ export const ComplaintService = {
   // ── READ ────────────────────────────────────────────────────────────────────
 
   async getAll(filters: ComplaintFilters): Promise<PaginatedComplaintsResponse> {
-    const cacheKey = `${CACHE_PREFIX_LIST}${filtersKey(filters)}`
-    const cached = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cacheKey = `${CACHE_PREFIX_LIST}${filtersKey(filters)}`
+    // const cached = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     const {
       status, priority, category, search,
@@ -166,14 +166,14 @@ export const ComplaintService = {
       totalPages: Math.ceil(total / limit),
     }
 
-    await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
+    // await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
     return result
   },
 
   async getById(id: string): Promise<Complaint> {
     const cacheKey = `${CACHE_PREFIX_DETAIL}${id}`
-    const cached   = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached   = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     const complaint = await ComplaintModel.findById(id)
       .populate("student_id", "student_name student_roll_no student_email student_cellphone")
@@ -182,13 +182,13 @@ export const ComplaintService = {
 
     if (!complaint) throw HttpError.notFound(`Complaint ${id} not found.`)
 
-    await redis.set(cacheKey, JSON.stringify(complaint), "EX", TTL_DETAIL)
+    // await redis.set(cacheKey, JSON.stringify(complaint), "EX", TTL_DETAIL)
     return complaint as unknown as Complaint
   },
 
   async getStats() {
-    const cached = await redis.get(CACHE_KEY_STATS)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(CACHE_KEY_STATS)
+    // if (cached) return JSON.parse(cached)
 
     const [byStatus, byPriority, byCategory, resolutionTime, pendingHigh] = await Promise.all([
       ComplaintModel.aggregate([
@@ -231,7 +231,7 @@ export const ComplaintService = {
       pendingHighPriority: pendingHigh,
     }
 
-    await redis.set(CACHE_KEY_STATS, JSON.stringify(result), "EX", TTL_STATS)
+    // await redis.set(CACHE_KEY_STATS, JSON.stringify(result), "EX", TTL_STATS)
     return result
   },
 
@@ -249,7 +249,7 @@ export const ComplaintService = {
       status_history: [{ status: "Pending", note: "Complaint submitted." }],
     })
 
-    await invalidateOnWrite()
+    // await invalidateOnWrite()
 
     return ComplaintService.getById(complaint._id.toString())
   },
@@ -271,7 +271,7 @@ export const ComplaintService = {
 
     if (!complaint) throw HttpError.notFound(`Complaint ${id} not found.`)
 
-    await invalidateOnWrite(id)
+    // await invalidateOnWrite(id)
     return ComplaintService.getById(id)
   },
 
@@ -304,13 +304,13 @@ export const ComplaintService = {
 
     if (!complaint) throw HttpError.notFound(`Complaint ${id} not found.`)
 
-    await invalidateOnWrite(id)
+    // await invalidateOnWrite(id)
     return ComplaintService.getById(id)
   },
 
   async delete(id: string): Promise<void> {
     const deleted = await ComplaintModel.findByIdAndDelete(id)
     if (!deleted) throw HttpError.notFound(`Complaint ${id} not found.`)
-    await invalidateOnWrite(id)
+    // await invalidateOnWrite(id)
   },
 }

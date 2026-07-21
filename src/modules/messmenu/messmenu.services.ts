@@ -1,5 +1,5 @@
  import MessMenu from "./MessMenu.js"
-import redis     from "../../services/Redis.js"
+// import redis     from "../../services/Redis.js"
 import {
   IMessMenu, IMeal, DayOfWeek, MealType,
   CreateMenuDTO, UpdateMenuDTO, UpdateMealItemsDTO, UpdateMealTimingDTO,
@@ -30,36 +30,36 @@ const TTL = {
 
 // ─── Redis helpers ────────────────────────────────────────────────────────────
 
-async function getCache<T>(key: string): Promise<T | null> {
-  try {
-    const raw = await redis.get(key)
-    return raw ? (JSON.parse(raw) as T) : null
-  } catch {
-    return null   // Redis failure is never fatal — fall through to DB
-  }
-}
+// async function getCache<T>(key: string): Promise<T | null> {
+//   try {
+//     // const raw = await redis.get(key)
+//     return raw ? (JSON.parse(raw) as T) : null
+//   } catch {
+//     // return null   // Redis failure is never fatal — fall through to DB
+//   }
+// }
 
-async function setCache(key: string, value: unknown, ttl: number): Promise<void> {
-  try {
-    await redis.set(key, JSON.stringify(value), "EX", ttl)
-  } catch {
-    // Swallow — a write failure doesn't break the response
-  }
-}
+// async function setCache(key: string, value: unknown, ttl: number): Promise<void> {
+//   try {
+//     // await redis.set(key, JSON.stringify(value), "EX", ttl)
+//   } catch {
+//     // Swallow — a write failure doesn't break the response
+//   }
+// }
 
 /** Deletes every key that starts with "menu:" — called after any write. */
-async function invalidateAll(): Promise<void> {
-  try {
-    let cursor = "0"
-    do {
-      const [next, keys] = await redis.scan(cursor, "MATCH", "menu:*", "COUNT", 100)
-      cursor = next
-      if (keys.length) await redis.del(...keys)
-    } while (cursor !== "0")
-  } catch {
-    // Cache invalidation failure should never crash a write operation
-  }
-}
+// async function invalidateAll(): Promise<void> {
+//   try {
+//     let cursor = "0"
+//     do {
+//       // const [next, keys] = await redis.scan(cursor, "MATCH", "menu:*", "COUNT", 100)
+//       cursor = next
+//       // if (keys.length) await redis.del(...keys)
+//     } while (cursor !== "0")
+//   } catch {
+//     // Cache invalidation failure should never crash a write operation
+//   }
+// }
 
 // ─── Pure helpers (unchanged) ─────────────────────────────────────────────────
 
@@ -117,14 +117,14 @@ export const MessMenuService = {
    * Cache is invalidated on every write (create, update, delete, bulk).
    */
   async getWeeklyMenu(): Promise<WeeklyMenuResponse> {
-    const cached = await getCache<WeeklyMenuResponse>(CACHE.weekly)
-    if (cached) return cached
+    // const cached = await getCache<WeeklyMenuResponse>(CACHE.weekly)
+    // if (cached) return cached
 
     const menus:IMessMenu | FlattenMaps<any> = await MessMenu.find().lean()
     const byDay = Object.fromEntries(menus.map((m:IMessMenu) => [m.dayOfWeek, m]))
     const result = DAYS_OF_WEEK.map((d) => byDay[d]).filter(Boolean) as IMessMenu[]
 
-    await setCache(CACHE.weekly, result, TTL.weekly)
+    // await setCache(CACHE.weekly, result, TTL.weekly)
     return result
   },
 
@@ -133,13 +133,13 @@ export const MessMenuService = {
    */
   async getTodayMenu(timezone?: string): Promise<TodayMenuResponse> {
     const day    = getCurrentDay(timezone)
-    const cacheKey = `${CACHE.today}:${day}`
+    // const cacheKey = `${CACHE.today}:${day}`
 
-    const cached = await getCache<TodayMenuResponse>(cacheKey)
-    if (cached) {
+    // const cached = await getCache<TodayMenuResponse>(cacheKey)
+    // if (cached) {
       // Recompute currentMeal live — it changes every ~90 min and must not be stale
-      return { ...cached, currentMeal: getActiveMeal(cached as unknown as IMessMenu, timezone) }
-    }
+      // return { ...cached, currentMeal: getActiveMeal(cached as unknown as IMessMenu, timezone) }
+    // }
 
     const menu = await MessMenu.findOne({ dayOfWeek: day }).lean()
     if (!menu) throw HttpError.notFound(`No menu has been set for '${day}' yet.`)
@@ -152,7 +152,7 @@ export const MessMenuService = {
       currentMeal: getActiveMeal(menu as unknown as IMessMenu, timezone),
     }
 
-    await setCache(cacheKey, result, TTL.today)
+    // await setCache(cacheKey, result, TTL.today)
     return result
   },
 
@@ -160,13 +160,13 @@ export const MessMenuService = {
    * Single day by name — cached for 1 hour.
    */
   async getByDay(day: DayOfWeek): Promise<IMessMenu> {
-    const cached = await getCache<IMessMenu>(CACHE.day(day))
-    if (cached) return cached
+    // const cached = await getCache<IMessMenu>(CACHE.day(day))
+    // if (cached) return cached
 
     const menu = await MessMenu.findOne({ dayOfWeek: day }).lean()
     if (!menu) throw HttpError.notFound(`No menu found for '${day}'.`)
 
-    await setCache(CACHE.day(day), menu, TTL.day)
+    // await setCache(CACHE.day(day), menu, TTL.day)
     return menu as unknown as IMessMenu
   },
 
@@ -174,13 +174,13 @@ export const MessMenuService = {
    * Single menu by ID — cached for 30 min.
    */
   async getById(id: string): Promise<IMessMenu> {
-    const cached = await getCache<IMessMenu>(CACHE.byId(id))
-    if (cached) return cached
+    // const cached = await getCache<IMessMenu>(CACHE.byId(id))
+    // if (cached) return cached
 
     const menu = await MessMenu.findById(id).lean()
     if (!menu) throw HttpError.notFound(`Menu with id '${id}' not found.`)
 
-    await setCache(CACHE.byId(id), menu, TTL.byId)
+    // await setCache(CACHE.byId(id), menu, TTL.byId)
     return menu as unknown as IMessMenu
   },
 
@@ -188,15 +188,15 @@ export const MessMenuService = {
    * Coverage — cached for 1 hour.
    */
   async getMenuCoverage() {
-    const cached = await getCache<{ configured: DayOfWeek[]; missing: DayOfWeek[]; isWeekComplete: boolean }>(CACHE.coverage)
-    if (cached) return cached
+    // const cached = await getCache<{ configured: DayOfWeek[]; missing: DayOfWeek[]; isWeekComplete: boolean }>(CACHE.coverage)
+    // if (cached) return cached
 
     const menus      = await MessMenu.find().select("dayOfWeek").lean()
     const configured = menus.map((m) => m.dayOfWeek) as DayOfWeek[]
     const missing    = DAYS_OF_WEEK.filter((d) => !configured.includes(d))
     const result     = { configured, missing, isWeekComplete: missing.length === 0 }
 
-    await setCache(CACHE.coverage, result, TTL.coverage)
+    // await setCache(CACHE.coverage, result, TTL.coverage)
     return result
   },
 
@@ -213,7 +213,7 @@ export const MessMenuService = {
       dinner:    buildMeal(dto.dinner,    "dinner"),
     })
 
-    await invalidateAll()
+    // await invalidateAll()
     return menu.toObject() as unknown as IMessMenu
   },
 
@@ -234,7 +234,7 @@ export const MessMenuService = {
 
     const updated = await MessMenu.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true }).lean()
 
-    await invalidateAll()
+    // await invalidateAll()
     return updated as unknown as IMessMenu
   },
 
@@ -260,7 +260,7 @@ export const MessMenuService = {
     menu[mealType] = { ...meal, items } as any
     await menu.save()
 
-    await invalidateAll()
+    // await invalidateAll()
     return menu.toObject() as unknown as IMessMenu
   },
 
@@ -278,7 +278,7 @@ export const MessMenuService = {
     menu[mealType] = { ...meal, startTime: newStart, endTime: newEnd } as any
     await menu.save()
 
-    await invalidateAll()
+    // await invalidateAll()
     return menu.toObject() as unknown as IMessMenu
   },
 
@@ -292,7 +292,7 @@ export const MessMenuService = {
     }))
 
     const result = await MessMenu.bulkWrite(ops)
-    await invalidateAll()
+    // await invalidateAll()
 
     return { upsertedCount: result.upsertedCount + result.modifiedCount, days: days.map((d) => d.dayOfWeek) }
   },
@@ -300,12 +300,12 @@ export const MessMenuService = {
   async delete(id: string): Promise<void> {
     const result = await MessMenu.findByIdAndDelete(id)
     if (!result) throw HttpError.notFound(`Menu with id '${id}' not found.`)
-    await invalidateAll()
+    // await invalidateAll()
   },
 
   async deleteAll(): Promise<{ deletedCount: number }> {
     const result = await MessMenu.deleteMany({})
-    await invalidateAll()
+    // await invalidateAll()
     return { deletedCount: result.deletedCount }
   },
 }

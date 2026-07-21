@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 import paymentModel from "./payment.model.js";
-import redis from "../../services/Redis.js";
+// import redis from "../../services/Redis.js";
 
 export const handleAddPayment = async (req: Request, res: Response) => {
     try {
@@ -11,15 +11,15 @@ export const handleAddPayment = async (req: Request, res: Response) => {
         if (!result) return res.status(400).json({ data: "Error Adding Payment." });
 
         // Efficient Cache Invalidation: Using SCAN to avoid blocking the event loop
-        let cursor = "0";
-        do {
-            const reply = await redis.scan(cursor, 'MATCH', 'payments*', 'COUNT', 100);
-            cursor = reply[0];
-            const keys = reply[1];
-            if (keys.length > 0) {
-                await redis.del(...keys);
-            }
-        } while (cursor !== "0");
+        // let cursor = "0";
+        // do {
+        //     // const reply = await redis.scan(cursor, 'MATCH', 'payments*', 'COUNT', 100);
+        //     cursor = reply[0];
+        //     const keys = reply[1];
+        //     if (keys.length > 0) {
+        //         // await redis.del(...keys);
+        //     }
+        // } while (cursor !== "0");
 
         return res.status(200).json({ data: "Payment Successful." });
     } catch (error) {
@@ -50,10 +50,10 @@ export const handleGetPayments = async (req: Request, res: Response) => {
         if (query) cachedKey += `:q:${query}`;
         if (dateQuery) cachedKey += `:d:${new Date(dateQuery).toISOString().split('T')[0]}`;
 
-        const cachedPageData = await redis.get(cachedKey);
-        if (cachedPageData) {
-            return res.status(200).json({ data: JSON.parse(cachedPageData), cached: true });
-        }
+        // const cachedPageData = await redis.get(cachedKey);
+        // if (cachedPageData) {
+        //     return res.status(200).json({ data: JSON.parse(cachedPageData), cached: true });
+        // }
 
         // 3. Build MongoDB Filter
         // Using 'any' for the filter object to handle MongoDB's complex query operators easily
@@ -79,7 +79,7 @@ export const handleGetPayments = async (req: Request, res: Response) => {
         }
 
         // 4. Cache the result for 1 hour (3600 seconds)
-        await redis.setex(cachedKey, 3600, JSON.stringify(payments));
+        // await redis.setex(cachedKey, 3600, JSON.stringify(payments));
 
         return res.status(200).json({ data: payments });
     } catch (error) {

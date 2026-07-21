@@ -2,7 +2,7 @@ import mongoose, { FilterQuery, SortOrder } from "mongoose"
 import Payment            from "../payment/payment.model.js"
 import FeeInvoiceModel    from "../feeInvoice/FeeInvoice.js"
 import studentApplication from "../student.application/studentApplicationModel.js"
-import redis              from "../../services/Redis.js"
+// import redis              from "../../services/Redis.js"
 import {
   CreatePaymentDTO, PaymentFilters,
   PaginatedPayments, PopulatedPayment,
@@ -43,24 +43,24 @@ const TTL_DETAIL = 10 * 60   // 10 minutes (payments don't change after creation
 // ─── Cache helpers ────────────────────────────────────────────────────────────
 
 /** Scan-and-delete all Redis keys matching a prefix. Non-blocking (uses SCAN). */
-async function invalidatePrefix(prefix: string): Promise<void> {
-  let cursor = "0"
-  do {
-    const [nextCursor, keys] = await redis.scan(
-      cursor, "MATCH", `${prefix}*`, "COUNT", 100
-    )
-    cursor = nextCursor
-    if (keys.length > 0) await redis.del(...keys)
-  } while (cursor !== "0")
-}
+// async function invalidatePrefix(prefix: string): Promise<void> {
+//   let cursor = "0"
+//   do {
+//     // const [nextCursor, keys] = await redis.scan(
+//       cursor, "MATCH", `${prefix}*`, "COUNT", 100
+//     )
+//     cursor = nextCursor
+//     // if (keys.length > 0) await redis.del(...keys)
+//   } while (cursor !== "0")
+// }
 
 /** Invalidate everything affected by a new payment being recorded. */
-async function invalidateOnCreate(): Promise<void> {
-  await Promise.all([
-    invalidatePrefix(CACHE_PREFIX_LIST),
-    redis.del(CACHE_KEY_STATS),
-  ])
-}
+// async function invalidateOnCreate(): Promise<void> {
+//   await Promise.all([
+//     invalidatePrefix(CACHE_PREFIX_LIST),
+//     // redis.del(CACHE_KEY_STATS),
+//   ])
+// }
 
 /**
  * Build a stable, sorted JSON fingerprint from filters.
@@ -106,8 +106,8 @@ export const PaymentService = {
     const cacheKey = `${CACHE_PREFIX_LIST}${filtersKey(filters)}`
 
     // ── Cache hit ────────────────────────────────────────────────────────────
-    const cached = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     // ── Cache miss — query MongoDB ────────────────────────────────────────────
     const {
@@ -131,7 +131,7 @@ export const PaymentService = {
         const empty: PaginatedPayments = { data: [], total: 0, page, limit, totalPages: 0, totalAmount: 0 }
         // Cache the empty result too — avoids repeated student lookup for
         // the same bad roll number within the TTL window
-        await redis.set(cacheKey, JSON.stringify(empty), "EX", TTL_LIST)
+        // await redis.set(cacheKey, JSON.stringify(empty), "EX", TTL_LIST)
         return empty
       }
     }
@@ -173,16 +173,16 @@ export const PaymentService = {
       totalAmount: Math.round((totalAmountAgg[0]?.total ?? 0) * 100) / 100,
     }
 
-    await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
+    // await redis.set(cacheKey, JSON.stringify(result), "EX", TTL_LIST)
     return result
   },
 
   async getById(id: string): Promise<PopulatedPayment> {
-    const cacheKey = `${CACHE_PREFIX_DETAIL}${id}`
+    // const cacheKey = `${CACHE_PREFIX_DETAIL}${id}`
 
     // ── Cache hit ────────────────────────────────────────────────────────────
-    const cached = await redis.get(cacheKey)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(cacheKey)
+    // if (cached) return JSON.parse(cached)
 
     // ── Cache miss ────────────────────────────────────────────────────────────
     const payment = await Payment.findById(id)
@@ -192,14 +192,14 @@ export const PaymentService = {
 
     if (!payment) throw HttpError.notFound(`Payment ${id} not found.`)
 
-    await redis.set(cacheKey, JSON.stringify(payment), "EX", TTL_DETAIL)
+    // await redis.set(cacheKey, JSON.stringify(payment), "EX", TTL_DETAIL)
     return payment as unknown as PopulatedPayment
   },
 
   async getStats() {
     // ── Cache hit ────────────────────────────────────────────────────────────
-    const cached = await redis.get(CACHE_KEY_STATS)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(CACHE_KEY_STATS)
+    // if (cached) return JSON.parse(cached)
 
     // ── Cache miss — three aggregations in parallel ────────────────────────
     const [statusBreakdown, methodBreakdown, totals] = await Promise.all([
@@ -241,7 +241,7 @@ export const PaymentService = {
       totalCount:  totals[0]?.count ?? 0,
     }
 
-    await redis.set(CACHE_KEY_STATS, JSON.stringify(result), "EX", TTL_STATS)
+    // await redis.set(CACHE_KEY_STATS, JSON.stringify(result), "EX", TTL_STATS)
     return result
   },
 
@@ -334,9 +334,9 @@ export const PaymentService = {
       // ── Invalidate caches after successful commit ─────────────────────────
       // Done AFTER commit so we never serve a cache that references a rolled-back doc.
       // Fire-and-forget: don't block the response waiting for Redis.
-      invalidateOnCreate().catch((err) =>
-        console.error("[PaymentService] Cache invalidation failed:", err)
-      )
+      // invalidateOnCreate().catch((err) =>
+        // console.error("[PaymentService] Cache invalidation failed:", err)
+      // )
 
       // Return the fully populated payment
       return PaymentService.getById(payment?._id.toString() as string)

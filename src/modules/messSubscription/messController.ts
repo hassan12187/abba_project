@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import AttendanceRecord from "../../models/mealAttendance.js";
 import MessMenuModel from "../messmenu/MessMenu.js";
 import MessSubscription from "./MessSubscription.model.js";
-import redis from "../../services/Redis.js";   
+// import redis from "../../services/Redis.js";   
 import type { Request,Response } from "express";
 
 interface AuthenticatedRequest extends Request{
@@ -16,24 +16,24 @@ export const getStudentMessDetails=async(req:AuthenticatedRequest,res:Response)=
         const type:string|undefined = req.query.type as string;
         const id =req?.id;
         if(type=="attendance" && id){
-            const cachedAttendance=await redis.get(`studentAttendance:${id}`);
-            if(cachedAttendance){
-                return res.status(200).send(JSON.parse(cachedAttendance));
-            };
+            // const cachedAttendance=await redis.get(`studentAttendance:${id}`);
+            // if(cachedAttendance){
+                // return res.status(200).send(JSON.parse(cachedAttendance));
+            // };
             const objResult=await handleGetAttendance(id);
-            await redis.setex(`studentAttendance:${id}`,3500,JSON.stringify(objResult));
+            // await redis.setex(`studentAttendance:${id}`,3500,JSON.stringify(objResult));
             return res.status(200).send(objResult);
         }
         if(!dayOfWeek)return res.status(500).json({message:"Wrong day."});
-        const cachedMenu:string|null=await redis.get(`messMenu:${dayOfWeek}`);
-        if(cachedMenu){
-            return res.status(200).send(cachedMenu)};
+        // const cachedMenu:string|null=await redis.get(`messMenu:${dayOfWeek}`);
+        // if(cachedMenu){
+        //     return res.status(200).send(cachedMenu)};
         const result = await MessMenuModel.findOne({dayOfWeek},"breakfast lunch dinner");
         if(!result)return res.status(404).json({message:"No Menu Found."});
             const dataModel={
                 menu:[{name:"Breakfast",...result.breakfast},{name:"Lunch",...result.lunch},{name:"Dinner",...result.dinner}],
                 id:result._id};
-        await redis.setex(`messMenu:${dayOfWeek}`,3500,JSON.stringify(dataModel));
+        // await redis.setex(`messMenu:${dayOfWeek}`,3500,JSON.stringify(dataModel));
         return res.status(200).send(dataModel);
     } catch (error) {
         return res.sendStatus(500);

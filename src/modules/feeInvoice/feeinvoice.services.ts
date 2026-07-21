@@ -4,7 +4,7 @@ import FeeInvoiceModel             from "./FeeInvoice.js"
 import FeeTemplate                 from "../../models/FeeTemplate.js"
 import studentApplicationModel     from "../student.application/studentApplicationModel.js"
 import Counter                     from "../../models/Counter.js"
-import redis                       from "../../services/Redis.js"
+// import redis                       from "../../services/Redis.js"
 import {
   IFeeInvoice,
   InvoiceListItem,
@@ -37,15 +37,15 @@ async function generateInvoiceNumber(): Promise<string> {
   return `INV-${year}-${counter.seq.toString().padStart(4, "0")}`
 }
 
-/** Invalidates all Redis keys matching a prefix pattern. */
-async function invalidateCacheByPrefix(prefix: string): Promise<void> {
-  let cursor = "0"
-  do {
-    const [nextCursor, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100)
-    cursor = nextCursor
-    if (keys.length > 0) await redis.del(...keys)
-  } while (cursor !== "0")
-}
+// /** Invalidates all Redis keys matching a prefix pattern. */
+// async function invalidateCacheByPrefix(prefix: string): Promise<void> {
+//   let cursor = "0"
+//   do {
+//     // const [nextCursor, keys] = await redis.scan(cursor, "MATCH", `${prefix}*`, "COUNT", 100)
+//     cursor = nextCursor
+//     // if (keys.length > 0) await redis.del(...keys)
+//   } while (cursor !== "0")
+// }
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
@@ -380,11 +380,11 @@ export const FeeInvoiceService = {
 
   /**
    * Get all fee templates.
-   * Result is Redis-cached for 1 hour; cache is invalidated on write.
+  //  * Result is Redis-cached for 1 hour; cache is invalidated on write.
    */
   async getFeeTemplates() {
-    const cached = await redis.get(TEMPLATE_CACHE_KEY)
-    if (cached) return JSON.parse(cached)
+    // const cached = await redis.get(TEMPLATE_CACHE_KEY)
+    // if (cached) return JSON.parse(cached)
 
     const templates = await FeeTemplate.find(
       {},
@@ -393,7 +393,7 @@ export const FeeInvoiceService = {
 
     if (templates.length === 0) throw HttpError.notFound("No fee templates found.")
 
-    await redis.set(TEMPLATE_CACHE_KEY, JSON.stringify(templates), "EX", TEMPLATE_CACHE_TTL_S)
+    // await redis.set(TEMPLATE_CACHE_KEY, JSON.stringify(templates), "EX", TEMPLATE_CACHE_TTL_S)
     return templates
   },
 
@@ -405,7 +405,7 @@ export const FeeInvoiceService = {
     if (existing) throw HttpError.conflict(`A template named '${dto.name}' already exists.`)
 
     const template = await FeeTemplate.create(dto)
-    await invalidateCacheByPrefix("fee:templates")
+    // await invalidateCacheByPrefix("fee:templates")
     return template.toObject()
   },
 
@@ -415,6 +415,6 @@ export const FeeInvoiceService = {
   async deleteFeeTemplate(id: string) {
     const template = await FeeTemplate.findByIdAndDelete(id)
     if (!template) throw HttpError.notFound(`Template with id '${id}' not found.`)
-    await invalidateCacheByPrefix("fee:templates")
+    // await invalidateCacheByPrefix("fee:templates")
   },
 }

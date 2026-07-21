@@ -1,4 +1,4 @@
-import { Document, FlattenMaps, Schema } from "mongoose"
+import { Document, Schema } from "mongoose"
 
 export interface CreateNotificationDTO {
   type:        NotificationType

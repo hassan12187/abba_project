@@ -7,7 +7,7 @@ import {
 } from "./types.js"
 import { HttpError } from "../../utils/errors.js"
 import { Types } from "mongoose"
-import redis from "../../services/Redis.js"
+// import redis from "../../services/Redis.js"
 
 export interface StudentInvoiceFilters {
   status?:      InvoiceStatus
@@ -126,10 +126,10 @@ export const StudentInvoiceService = {
     overdueCount:     number;
     };
 
-    const cached = await redis.get(`invoice:summary:${studentId}`);
-    if(cached){
-      return JSON.parse(cached) as StudentInvoiceSummary;
-    }
+    // const cached = await redis.get(`invoice:summary:${studentId}`);
+    // if(cached){
+    //   return JSON.parse(cached) as StudentInvoiceSummary;
+    // }
 
     const [agg, lastPayment] = await Promise.all([
       FeeInvoiceModel.aggregate<InvoiceAggResult>([
@@ -166,7 +166,7 @@ export const StudentInvoiceService = {
       progress:stats.totalAmount > 0 ? Math.min((stats.totalPaid/stats.totalAmount)*100,100):0,
       lastPaymentDate:  lastPayment ? (lastPayment as any).updatedAt : null,
     }
-    await redis.setex(`invoice:summary:${studentId}`,60,JSON.stringify(sumRes)).catch((err)=>console.error("[cache] Failed to set invoice summary:", err));
+    // await redis.setex(`invoice:summary:${studentId}`,60,JSON.stringify(sumRes)).catch((err)=>console.error("[cache] Failed to set invoice summary:", err));
     return sumRes;
   },
 }
