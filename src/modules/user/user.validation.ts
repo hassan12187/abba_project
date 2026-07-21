@@ -82,7 +82,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   body: z
     .object({
-      email:           z.string().email().toLowerCase().trim(),
+      email:           z.email().toLowerCase().trim(),
       code:            z.string().min(6).max(6, "Reset code must be 6 digits."),
       newPassword:     z.string().min(8, "Password must be at least 8 characters."),
       confirmPassword: z.string().min(1),
@@ -115,6 +115,13 @@ export const adminUpdateUserSchema = z.object({
     }),
 })
 
+// Verify Code
+export const verifyCodeSchema=z.object({
+  body:z.object({
+    code:z.string().max(6).trim(),
+    email:z.email().toLowerCase().trim()
+  })
+})
 // ─── ID param ─────────────────────────────────────────────────────────────────
 export const idParamSchema = z.object({
   params: z.object({ id: objectId }),

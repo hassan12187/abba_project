@@ -13,6 +13,7 @@ import {
   refreshTokenSchema,
   adminUpdateUserSchema,
   idParamSchema,
+  verifyCodeSchema,
 } from "./user.validation.js"
 
 const asyncHandler =
@@ -104,6 +105,16 @@ const forgotPassword = asyncHandler(async (req, res) => {
   })
 })
 
+// POST verify code
+const verifyCode=asyncHandler(async (req,res)=>{
+  const result = await UserService.verifyCodeAdd(req.body.code,req.body.email);
+  console.log("inside")
+  res.status(200).json({
+    success:result,
+    message:`${result ? "" : "Invalid or Expired Code."}`
+  });
+})
+
 /** POST /auth/reset-password */
 const resetPassword = asyncHandler(async (req, res) => {
   await UserService.resetPassword(req.body)
@@ -186,6 +197,7 @@ authRouter.post("/login",          validate(loginSchema),          login)
 authRouter.post("/refresh",        validate(refreshTokenSchema),   refreshToken)
 authRouter.post("/forgot-password",validate(forgotPasswordSchema), forgotPassword)
 authRouter.post("/reset-password", validate(resetPasswordSchema),  resetPassword)
+authRouter.post("/verify-code",validate(verifyCodeSchema),verifyCode)
 
 // ── Authenticated routes (any logged-in user) ─────────────────────────────────
 authRouter.post  ("/logout",       authenticate,                   logout)

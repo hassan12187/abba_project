@@ -5,8 +5,8 @@ import { sendEmail } from "./sendEmail.js";
 // };
 export const changePasswordVerification=async(email:string,code:string)=>{
     await sendEmail(
-        email,
         "Verify Your Password Change",
+        email,
         `<p>Use this verification code to confirm your password change:</p>
              <h2>${code}</h2>
              <p>This code will expire in 5 minutes.</p>`

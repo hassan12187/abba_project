@@ -1,5 +1,5 @@
 import jwt           from "jsonwebtoken"
-import { hash }      from "bcrypt"
+import { hash,compare }      from "bcrypt"
 import User          from "./userModel.js"
 import studentApplicationModel from "../student.application/studentApplicationModel.js"
 import redis         from "../../services/Redis.js"
@@ -171,6 +171,18 @@ export const UserService = {
     // TODO: EmailService.sendResetCode(user.email, code)
     await changePasswordVerification(user.email,code);
     return { userId: user._id.toString() }
+  },
+
+  async verifyCodeAdd(code:string,email:string){
+    const user = await User.findOne({email}).select("+passwordResetCode");
+    if(!user)return;
+    const hashCode=user.passwordResetCode as string;
+    if(user?.passwordResetExpires != null && user.passwordResetExpires < new Date()){
+      return false;
+    };
+    const isTrue = await compare(code,hashCode);
+    console.log(isTrue);
+    return isTrue;
   },
 
   async resetPassword(dto: { email: string; code: string; newPassword: string }) {
