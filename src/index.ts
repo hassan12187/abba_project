@@ -50,6 +50,7 @@ const server = createServer(app)   // wrap Express — required for Socket.io
 const allowedOrigins = [
   process.env.ADMIN_FRONTEND_ORIGIN,
   process.env.STUDENT_PORTAL_FRONTEND_ORIGIN,
+  "https://merhanhostel.vercel.app"
 ].filter(Boolean) as string[]
 
 initSocket(server, allowedOrigins)   // see note below about the signature tweak
